@@ -38,10 +38,12 @@ CREATE TABLE games (
 
 CREATE TABLE tournaments (
                              id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                             game_id INT UNSIGNED NOT NULL,
                              name        VARCHAR(150) NOT NULL,
                              creator_id  INT UNSIGNED NOT NULL,
                              description TEXT NULL,
                              created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                             FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE RESTRICT,
                              FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -109,8 +111,8 @@ CREATE TABLE session_ratings (
                                  rating     TINYINT UNSIGNED NOT NULL,
                                  comment    TEXT NULL,
                                  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                 FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
-                                 FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+                                 FOREIGN KEY (user_id, session_id)
+                                     REFERENCES participations(user_id, session_id) ON DELETE CASCADE,
                                  UNIQUE KEY uq_rating (session_id, user_id),
                                  CHECK (rating BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
