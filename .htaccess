@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /~vrzj02/meeple-up/
+
+# Skutečné soubory a složky servíruj přímo (assets, obrázky...)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Všechno ostatní pošli do index.php
+RewriteRule ^ index.php [L]

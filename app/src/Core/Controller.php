@@ -19,4 +19,32 @@ abstract class Controller
         require __DIR__.'/../../views/layout.php'; // načte layout, content využije layout.php
     }
 
+    protected function redirect(string $path): void{
+        header('Location: ' . BASE_PATH . $path);
+        exit;
+    }
+
+    protected function requireLogin(): void
+    {
+        if (!Auth::check()) {
+            $this->redirect('/login');
+        }
+    }
+
+    protected function requireGuest(): void
+    {
+        if (Auth::check()) {
+            $this->redirect('/');
+        }
+    }
+
+    protected function requireAdmin(): void
+    {
+        $this->requireLogin();
+        if ((Auth::user()['role'] ?? 'user') !== 'admin') {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+    }
+
 }

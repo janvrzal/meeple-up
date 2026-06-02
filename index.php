@@ -17,6 +17,11 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+session_start();
+
+$base = dirname($_SERVER['SCRIPT_NAME']);
+define('BASE_PATH', $base === '/' ? '' : $base);
+
 $config = require __DIR__ . '/app/config/config.php';
 
 if (($config['app']['env'] ?? 'production') === 'local') {
@@ -24,16 +29,12 @@ if (($config['app']['env'] ?? 'production') === 'local') {
     error_reporting(E_ALL);
 }
 
-define('PEPPER', $config['app']['pepper']);
+define('PEPPER', $config['app']['pepper'] ?? '');
 
 require __DIR__ . '/app/src/Core/Database.php';
 $pdo = Database::getConnection($config);
 
 $router = new Router();
-/*
-$router->get('/', function() {
-    echo 'Welcome to Meeple-Up';
-});*/
 
 $router->get('/', function () {
     (new class extends Controller {
@@ -41,13 +42,17 @@ $router->get('/', function () {
     })->show();
 });
 
-// později: $router->get('/login', [AuthController::class, 'showLogin']);
-//          $router->post('/login', [AuthController::class, 'login']);
+// --- auth routy ---
+$router->get('/register',  [AuthController::class, 'showRegister']);
+$router->post('/register', [AuthController::class, 'register']);
+$router->get('/login',  [AuthController::class, 'showLogin']);
+$router->post('/login', [AuthController::class, 'login']);
+$router->get('/logout', [AuthController::class, 'logout']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-$base = dirname($_SERVER['SCRIPT_NAME']);
+
 if($base !== '/' && str_starts_with($uri, $base)) {
     $uri = substr($uri, strlen($base));
 }
