@@ -24,13 +24,21 @@ if (($config['app']['env'] ?? 'production') === 'local') {
     error_reporting(E_ALL);
 }
 
+define('PEPPER', $config['app']['pepper']);
+
 require __DIR__ . '/app/src/Core/Database.php';
 $pdo = Database::getConnection($config);
 
 $router = new Router();
-
+/*
 $router->get('/', function() {
     echo 'Welcome to Meeple-Up';
+});*/
+
+$router->get('/', function () {
+    (new class extends Controller {
+        public function show() { $this->render('home'); }
+    })->show();
 });
 
 // později: $router->get('/login', [AuthController::class, 'showLogin']);

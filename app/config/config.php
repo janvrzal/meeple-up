@@ -14,6 +14,7 @@ if ($env === FALSE) {
 return [
     'app' => [
         'env' => $env['APP_ENV'] ?? 'production',
+        'pepper' => $env['PEPPER'] ?? '',
     ],
     'database' => [
         'host'     => $env['DB_HOST'],

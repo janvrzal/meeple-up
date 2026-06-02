@@ -8,9 +8,12 @@ class Database
     private function __construct() {}
     private function __clone() {}
 
-    public static function getConnection(array $config) : PDO{
+    public static function getConnection(?array $config = null) : PDO{
 
         if (self::$instance === null) {
+            if($config === null){
+                throw new RuntimeException('Database not initialized, missing config');
+            }
             $db = $config['database'];
 
             $dsn = "mysql:host={$db['host']};dbname={$db['name']};charset={$db['charset']}";
