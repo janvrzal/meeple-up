@@ -29,6 +29,7 @@ class SessionController extends Controller
         $data = $result['data'];
         $data['creator_id'] = Auth::id();
         $id = (new Session())->create($data);
+        (new Participation())->join(Auth::id(), $id, 'approved');
 
         $this->redirect('/sessions/' . $id);
     }
@@ -105,13 +106,54 @@ class SessionController extends Controller
         if ($session === null) {
             http_response_code(404);
             exit('Session not found.');
-            return;
         }
 
         $this->requireOwner((int) $session['creator_id']);
 
         $model->delete((int) $id);
         $this->redirect('/sessions');
+    }
+
+    public function join(string $id): void
+    {
+        $this->requireLogin();
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            http_response_code(419); exit('Invalid CSRF token');
+        }
+
+        $sessionId = (int) $id;
+        $session = (new Session())->findById($sessionId);
+        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+
+        $participation = new Participation();
+
+        // už přihlášený? nic nedělej
+        if ($participation->find(Auth::id(), $sessionId) !== null) {
+            $this->redirect('/sessions/' . $sessionId);
+        }
+
+        // plno? (jen když je limit nastavený)
+        if ($session['max_players'] !== null
+            && (int) $session['player_count'] >= (int) $session['max_players']) {
+            $this->redirect('/sessions/' . $sessionId);
+        }
+
+        // soukromé → pending (čeká na schválení), veřejné → approved
+        $status = $session['is_private'] ? 'pending' : 'approved';
+        $participation->join(Auth::id(), $sessionId, $status);
+
+        $this->redirect('/sessions/' . $sessionId);
+    }
+
+    public function leave(string $id): void
+    {
+        $this->requireLogin();
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            http_response_code(419); exit('Invalid CSRF token');
+        }
+
+        (new Participation())->leave(Auth::id(), (int) $id);
+        $this->redirect('/sessions/' . (int) $id);
     }
 
     private function collectInput(): array
@@ -161,5 +203,59 @@ class SessionController extends Controller
                 'description'  => $description,
             ],
         ];
+    }
+
+    public function index(): void{
+        $sessions = (new Session())->upcoming();
+        $this->render("sessions/index", ['sessions' => $sessions]);
+    }
+
+    public function show(string $id): void
+    {
+        $sessionId = (int) $id;
+        $session = (new Session())->findById($sessionId);
+        if ($session === null) {
+            http_response_code(404);
+            echo 'Session not found';
+            return;
+        }
+
+        $participation = new Participation();
+
+        $this->render('sessions/show', [
+            'session'      => $session,
+            'participants' => $participation->forSession($sessionId),
+            'mine'         => Auth::check() ? $participation->find(Auth::id(), $sessionId) : null,
+        ]);
+    }
+
+    public function approve(string $id): void
+    {
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            http_response_code(419); exit('Invalid CSRF token');
+        }
+        $sessionId = (int) $id;
+        $session = (new Session())->findById($sessionId);
+        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        $this->requireOwner((int) $session['creator_id']);
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        (new Participation())->setStatus($userId, $sessionId, 'approved');
+        $this->redirect('/sessions/' . $sessionId);
+    }
+
+    public function reject(string $id): void
+    {
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            http_response_code(419); exit('Invalid CSRF token');
+        }
+        $sessionId = (int) $id;
+        $session = (new Session())->findById($sessionId);
+        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        $this->requireOwner((int) $session['creator_id']);
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        (new Participation())->leave($userId, $sessionId);   // zamítnutí = smazání žádosti
+        $this->redirect('/sessions/' . $sessionId);
     }
 }

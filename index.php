@@ -54,6 +54,10 @@ $router->get('/sessions/{id}',    [SessionController::class, 'show']);
 $router->post('/sessions/{id}/delete', [SessionController::class, 'destroy']);
 $router->get('/sessions/{id}/edit',    [SessionController::class, 'edit']);
 $router->post('/sessions/{id}/update', [SessionController::class, 'update']);
+$router->post('/sessions/{id}/join',  [SessionController::class, 'join']);
+$router->post('/sessions/{id}/leave', [SessionController::class, 'leave']);
+$router->post('/sessions/{id}/approve', [SessionController::class, 'approve']);
+$router->post('/sessions/{id}/reject',  [SessionController::class, 'reject']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
