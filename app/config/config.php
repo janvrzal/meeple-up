@@ -15,6 +15,7 @@ return [
     'app' => [
         'env' => $env['APP_ENV'] ?? 'production',
         'pepper' => $env['PEPPER'] ?? '',
+        'bgg_token' => $env['BGG_TOKEN'] ?? '',
     ],
     'database' => [
         'host'     => $env['DB_HOST'],
@@ -22,5 +23,6 @@ return [
         'user'     => $env['DB_USER'],
         'password' => $env['DB_PASS'],
         'charset'  => $env['DB_CHARSET'] ?? 'utf8mb4',
+        'bgg_source' => $env['BGG_SOURCE'] ?? 'catalog',
     ],
 ];

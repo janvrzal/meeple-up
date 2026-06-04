@@ -24,6 +24,70 @@
                    class="input input-bordered w-full" />
         </div>
 
+<!--        Výběr hry-->
+        <div class="form-control">
+            <label class="label" for="game-search"><span class="label-text">Game (optional)</span></label>
+            <input type="text" id="game-search" name="game_name" autocomplete="off" placeholder="Search a game..."
+                   class="input input-bordered w-full"
+                   value="<?= htmlspecialchars($old['game_name'] ?? '') ?>">
+            <input type="hidden" name="bgg_id" id="bgg-id"
+                   value="<?= htmlspecialchars($old['bgg_id'] ?? '') ?>">
+            <ul id="game-results" class="menu bg-base-200 rounded-box mt-1 hidden"></ul>
+        </div>
+
+        <script>
+            (function () {
+                const base   = '<?= BASE_PATH ?>';
+                const input  = document.getElementById('game-search');
+                const hidden = document.getElementById('bgg-id');
+                const list   = document.getElementById('game-results');
+                let timer;
+                let controller;                 // pro rušení rozdělaných requestů
+                const cache = {};               // jednoduchá paměť výsledků
+
+                input.addEventListener('input', () => {
+                    hidden.value = '';
+                    clearTimeout(timer);
+                    const q = input.value.trim();
+                    if (q.length < 2) { list.classList.add('hidden'); list.innerHTML = ''; return; }
+
+                    timer = setTimeout(async () => {
+                        // 1) z cache okamžitě
+                        if (cache[q]) { render(cache[q]); return; }
+
+                        // 2) zruš předchozí nedokončený dotaz
+                        if (controller) controller.abort();
+                        controller = new AbortController();
+
+                        try {
+                            const res = await fetch(base + '/games/search?q=' + encodeURIComponent(q),
+                                { signal: controller.signal });
+                            const games = await res.json();
+                            cache[q] = games;
+                            render(games);
+                        } catch (e) { /* abortnutý request – ignoruj */ }
+                    }, 150);     // ← zkráceno z 250 na 150 ms
+                });
+
+                function render(games) {
+                    list.innerHTML = '';
+                    games.forEach(g => {
+                        const li = document.createElement('li');
+                        const a  = document.createElement('a');
+                        a.textContent = g.name + (g.year_published ? ' (' + g.year_published + ')' : '');
+                        a.addEventListener('click', () => {
+                            input.value  = g.name;
+                            hidden.value = g.bgg_id;
+                            list.classList.add('hidden');
+                        });
+                        li.appendChild(a);
+                        list.appendChild(li);
+                    });
+                    list.classList.remove('hidden');
+                }
+            })();
+        </script>
+
 <!--        Místo sezení-->
         <div class="form-control">
             <label class="label" for="location_id"><span class="label-text">Location</span></label>

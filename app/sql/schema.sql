@@ -119,3 +119,12 @@ CREATE TABLE session_ratings (
                                  UNIQUE KEY uq_rating (session_id, user_id),
                                  CHECK (rating BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE bgg_catalog (
+                             bgg_id         INT UNSIGNED PRIMARY KEY,
+                             name           VARCHAR(255) NOT NULL,
+                             year_published SMALLINT NULL,
+                             rank           INT UNSIGNED NULL,
+                             is_expansion   TINYINT(1) NOT NULL DEFAULT 0,
+                             INDEX idx_catalog_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

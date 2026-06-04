@@ -31,6 +31,10 @@ if (($config['app']['env'] ?? 'production') === 'local') {
 
 define('PEPPER', $config['app']['pepper'] ?? '');
 
+define('BGG_SOURCE', $config['app']['bgg_source'] ?? 'catalog');
+
+define('BGG_TOKEN', $config['app']['bgg_token'] ?? '');
+
 require __DIR__ . '/app/src/Core/Database.php';
 $pdo = Database::getConnection($config);
 
@@ -60,6 +64,9 @@ $router->post('/sessions/{id}/approve', [SessionController::class, 'approve']);
 $router->post('/sessions/{id}/reject',  [SessionController::class, 'reject']);
 $router->post('/sessions/{id}/comments', [SessionController::class, 'addComment']);
 $router->post('/comments/{id}/delete',   [SessionController::class, 'deleteComment']);
+
+// --- game routy ---
+$router->get('/games/search', [GameController::class, 'search']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

@@ -45,6 +45,8 @@ class SessionController extends Controller
 
         $this->requireOwner((int) $session['creator_id']);
 
+        $game = $session['game_id'] ? (new Game())->findById((int) $session['game_id']) : null;
+
         $dt = strtotime($session['scheduled_at']);
         $this->render('sessions/create', [
             'locations' => (new Location())->all(),
@@ -59,6 +61,8 @@ class SessionController extends Controller
                 'max_players' => $session['max_players'],
                 'is_private'  => $session['is_private'],
                 'description' => $session['description'],
+                'bgg_id'      => $game['bgg_id'] ?? '',
+                'game_name'   => $game['name'] ?? '',
             ],
         ]);
     }
@@ -171,6 +175,8 @@ class SessionController extends Controller
         $maxPlayers  = $maxRaw === '' ? null : (int) $maxRaw;
         $isPrivate   = isset($_POST['is_private']) ? 1 : 0;
         $description = trim($_POST['description'] ?? '');
+        $bggId  = (int) ($_POST['bgg_id'] ?? 0);
+        $gameId = $bggId > 0 ? (new GameService())->resolve($bggId) : null;
 
         $locationModel = new Location();
         if ($newName !== '' && $newCity !== '') {
@@ -195,7 +201,7 @@ class SessionController extends Controller
             'errors' => $errors,
             'data'   => [
                 'location_id'  => $locationId,
-                'game_id'      => null,
+                'game_id'      => $gameId,
                 'title'        => $title,
                 'scheduled_at' => $errors ? null : date('Y-m-d H:i:s', strtotime($scheduledAt)),
                 'max_players'  => $maxPlayers,
@@ -208,12 +214,14 @@ class SessionController extends Controller
     public function index(): void{
         $filters = [
             'location_id' => $_GET['location_id'] ?? null,
+            'game_id'     => $_GET['game_id'] ?? null,
             'free_only'   => !empty($_GET['free_only']),
         ];
 
         $this->render('sessions/index', [
             'sessions'  => (new Session())->filtered($filters),
             'locations' => (new Location())->all(),
+            'games'     => (new Session())->gamesInUpcoming(),
             'filters'   => $filters,
         ]);
     }

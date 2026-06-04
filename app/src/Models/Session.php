@@ -54,6 +54,16 @@ class Session extends Model
         return $this->db->query($sql)->fetchAll();
     }
 
+    public function gamesInUpcoming(): array
+    {
+        $sql = 'SELECT DISTINCT g.id, g.name
+            FROM sessions s
+            JOIN games g ON g.id = s.game_id
+            WHERE s.scheduled_at >= NOW() AND s.status = \'open\'
+            ORDER BY g.name';
+        return $this->db->query($sql)->fetchAll();
+    }
+
     public function filtered(array $f): array
     {
         $sql = 'SELECT s.*,
@@ -84,6 +94,11 @@ class Session extends Model
         // filtr: jen s volnými místy (HAVING – pracuje s aliasem player_count)
         if (!empty($f['free_only'])) {
             $sql .= ' HAVING (s.max_players IS NULL OR player_count < s.max_players)';
+        }
+
+        if (!empty($f['game_id'])) {
+            $sql .= ' AND s.game_id = :game_id';
+            $params['game_id'] = (int) $f['game_id'];
         }
 
         $sql .= ' ORDER BY s.scheduled_at ASC';
