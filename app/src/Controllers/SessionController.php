@@ -206,8 +206,16 @@ class SessionController extends Controller
     }
 
     public function index(): void{
-        $sessions = (new Session())->upcoming();
-        $this->render("sessions/index", ['sessions' => $sessions]);
+        $filters = [
+            'location_id' => $_GET['location_id'] ?? null,
+            'free_only'   => !empty($_GET['free_only']),
+        ];
+
+        $this->render('sessions/index', [
+            'sessions'  => (new Session())->filtered($filters),
+            'locations' => (new Location())->all(),
+            'filters'   => $filters,
+        ]);
     }
 
     public function show(string $id): void
@@ -226,7 +234,10 @@ class SessionController extends Controller
             'session'      => $session,
             'participants' => $participation->forSession($sessionId),
             'mine'         => Auth::check() ? $participation->find(Auth::id(), $sessionId) : null,
+            'comments'     => (new Comment())->forSession($sessionId),
         ]);
+
+
     }
 
     public function approve(string $id): void
@@ -257,5 +268,51 @@ class SessionController extends Controller
         $userId = (int) ($_POST['user_id'] ?? 0);
         (new Participation())->leave($userId, $sessionId);   // zamítnutí = smazání žádosti
         $this->redirect('/sessions/' . $sessionId);
+    }
+
+    public function addComment(string $id): void
+    {
+        $this->requireLogin();
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            http_response_code(419); exit('Invalid CSRF token');
+        }
+
+        $sessionId = (int) $id;
+
+        $session = (new Session())->findById($sessionId);
+        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+
+        $isCreator = (int) $session['creator_id'] === Auth::id();
+        $mine = (new Participation())->find(Auth::id(), $sessionId);
+
+        if (!$isCreator && ($mine === null || $mine['status'] !== 'approved')) {
+            http_response_code(403);
+            exit('Only participants can post messages.');
+        }
+
+        $body = trim($_POST['body'] ?? '');
+
+        if ($body !== '') {
+            (new Comment())->create($sessionId, Auth::id(), $body);
+        }
+
+        $this->redirect('/sessions/' . $sessionId);
+    }
+
+    public function deleteComment(string $id): void
+    {
+        $this->requireLogin();
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            http_response_code(419); exit('Invalid CSRF token');
+        }
+
+        $model = new Comment();
+        $comment = $model->findById((int) $id);
+        if ($comment === null) { http_response_code(404); echo 'Comment not found'; return; }
+
+        $this->requireOwner((int) $comment['user_id']);
+
+        $model->delete((int) $id);
+        $this->redirect('/sessions/' . (int) $comment['session_id']);
     }
 }

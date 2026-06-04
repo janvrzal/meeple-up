@@ -53,6 +53,46 @@ class Session extends Model
                 ORDER BY s.scheduled_at ASC';
         return $this->db->query($sql)->fetchAll();
     }
+
+    public function filtered(array $f): array
+    {
+        $sql = 'SELECT s.*,
+                   l.name AS location_name, l.city AS location_city,
+                   g.name AS game_name, g.thumbnail_url AS game_thumb,
+                   u.username AS creator_name,
+                   (SELECT COUNT(*) FROM participations p WHERE p.session_id = s.id) AS player_count
+            FROM sessions s
+            JOIN locations l ON l.id = s.location_id
+            LEFT JOIN games g ON g.id = s.game_id
+            JOIN users u ON u.id = s.creator_id
+            WHERE s.scheduled_at >= NOW() AND s.status = \'open\'';
+
+        $params = [];
+
+        // filtr: lokace
+        if (!empty($f['location_id'])) {
+            $sql .= ' AND s.location_id = :location_id';
+            $params['location_id'] = (int) $f['location_id'];
+        }
+
+        // filtr: město
+        if (!empty($f['city'])) {
+            $sql .= ' AND l.city = :city';
+            $params['city'] = $f['city'];
+        }
+
+        // filtr: jen s volnými místy (HAVING – pracuje s aliasem player_count)
+        if (!empty($f['free_only'])) {
+            $sql .= ' HAVING (s.max_players IS NULL OR player_count < s.max_players)';
+        }
+
+        $sql .= ' ORDER BY s.scheduled_at ASC';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function update(int $id, array $data): void
     {
         $sql = 'UPDATE sessions SET

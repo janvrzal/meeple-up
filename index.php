@@ -58,6 +58,8 @@ $router->post('/sessions/{id}/join',  [SessionController::class, 'join']);
 $router->post('/sessions/{id}/leave', [SessionController::class, 'leave']);
 $router->post('/sessions/{id}/approve', [SessionController::class, 'approve']);
 $router->post('/sessions/{id}/reject',  [SessionController::class, 'reject']);
+$router->post('/sessions/{id}/comments', [SessionController::class, 'addComment']);
+$router->post('/comments/{id}/delete',   [SessionController::class, 'deleteComment']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
