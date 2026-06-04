@@ -36,18 +36,21 @@ $pdo = Database::getConnection($config);
 
 $router = new Router();
 
-$router->get('/', function () {
-    (new class extends Controller {
-        public function show() { $this->render('home'); }
-    })->show();
-});
-
 // --- auth routy ---
 $router->get('/register',  [AuthController::class, 'showRegister']);
 $router->post('/register', [AuthController::class, 'register']);
 $router->get('/login',  [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login']);
 $router->get('/logout', [AuthController::class, 'logout']);
+
+// --- home routy ---
+$router->get('/', [HomeController::class, 'index']);
+
+// --- sessions routy ---
+$router->get('/sessions',        [SessionController::class, 'index']);
+$router->get('/sessions/create',  [SessionController::class, 'create']);
+$router->post('/sessions',        [SessionController::class, 'store']);
+$router->get('/sessions/{id}',    [SessionController::class, 'show']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

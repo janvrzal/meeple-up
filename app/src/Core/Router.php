@@ -13,21 +13,28 @@ class Router
     }
 
     public function dispatch(string $method, string $uri) : void{
-        $handler = $this->routes[$method][$uri] ?? null;
+        foreach ($this->routes[$method] ?? [] as $route => $handler) {
+            $pattern = preg_replace('#\{[a-zA-Z_]}#', '([^/]+)', $route);
+            $pattern = '#^' . $pattern . '$#';
 
-        if($handler === null) {
-            http_response_code(404);
-            echo "404 Not Found";
-            return;
+            if (preg_match($pattern, $uri, $matches)) {
+                array_shift($matches);
+                $this->callHandler($handler, $matches);
+                return;
+            }
         }
 
+        http_response_code(404);
+        echo '404 Not Found';
+    }
+
+    public function callHandler($handler, array $params = []) : void{
         if(is_array($handler)){
             [$class, $methodName] = $handler;
-            $controller = new $class();
-            $controller->$methodName();
+            (new $class()) -> $methodName(...$params);
         }
         else{
-            $handler();
+            $handler(...$params);
         }
     }
 }

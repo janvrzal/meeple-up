@@ -24,6 +24,21 @@ abstract class Controller
         exit;
     }
 
+    public function index(): void{
+        $sessions = (new Session())->upcoming();
+        $this->render("sessions/index", ['sessions' => $sessions]);
+    }
+
+    public function show(string $id): void{
+        $session = (new Session())->findById((int) $id);
+        if ($session === null) {
+            http_response_code(404);
+            echo 'Session not found';
+            return;
+        }
+        $this->render('sessions/show', ['session' => $session]);
+    }
+
     protected function requireLogin(): void
     {
         if (!Auth::check()) {
