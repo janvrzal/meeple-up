@@ -28,5 +28,14 @@
         </div>
     <?php endif; ?>
 
+    <?php if (Auth::check() && ((int) $s['creator_id'] === Auth::id() || (Auth::user()['role'] ?? 'user') === 'admin')): ?>
+        <form method="POST" action="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/delete"
+              onsubmit="return confirm('Delete this session?');" class="mt-4">
+            <?= Csrf::field() ?>
+            <button class="btn btn-sm btn-error">Delete</button>
+        </form>
+        <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/edit" class="btn btn-sm">Edit</a>
+    <?php endif; ?>
+
     <a href="<?= BASE_PATH ?>/sessions" class="link mt-4 inline-block">← Back to list</a>
 </div>

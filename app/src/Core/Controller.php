@@ -62,4 +62,17 @@ abstract class Controller
         }
     }
 
+    protected function requireOwner(int $ownerId): void
+    {
+        $this->requireLogin();
+
+        $isOwner = Auth::id() === $ownerId;
+        $isAdmin = (Auth::user()['role'] ?? 'user') === 'admin';
+
+        if (!$isOwner && !$isAdmin) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+    }
+
 }

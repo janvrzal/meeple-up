@@ -2,7 +2,7 @@
 /** @var array $locations */ /** @var array $errors */ /** @var array $old */
 ?>
 <div class="max-w-2xl mx-auto card bg-base-100 shadow p-6">
-    <h1 class="text-2xl font-bold mb-4">Create a session</h1>
+    <h1 class="text-2xl font-bold mb-4"><?= htmlspecialchars($heading ?? 'Create a session') ?></h1>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-error mb-4">
@@ -13,7 +13,7 @@
             </ul>
         </div>
     <?php endif; ?>
-    <form action="<?= BASE_PATH ?>/sessions" method="POST" class="space-y-3">
+    <form action="<?= $action ?? (BASE_PATH . '/sessions') ?>" method="POST" class="space-y-3">
         <?= Csrf::field() ?>
 
 <!--        Název sezení-->
@@ -89,6 +89,6 @@
                       class="textarea textarea-bordered w-full"><?= htmlspecialchars($old['description'] ?? '') ?></textarea>
         </div>
 
-        <button class="btn btn-primary w-full">Create session</button>
+        <button class="btn btn-primary w-full"><?= htmlspecialchars($submit ?? 'Create session') ?></button>
     </form>
 </div>

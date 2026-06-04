@@ -51,6 +51,9 @@ $router->get('/sessions',        [SessionController::class, 'index']);
 $router->get('/sessions/create',  [SessionController::class, 'create']);
 $router->post('/sessions',        [SessionController::class, 'store']);
 $router->get('/sessions/{id}',    [SessionController::class, 'show']);
+$router->post('/sessions/{id}/delete', [SessionController::class, 'destroy']);
+$router->get('/sessions/{id}/edit',    [SessionController::class, 'edit']);
+$router->post('/sessions/{id}/update', [SessionController::class, 'update']);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
