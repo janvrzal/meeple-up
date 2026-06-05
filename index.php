@@ -64,6 +64,7 @@ $router->post('/sessions/{id}/approve', [SessionController::class, 'approve']);
 $router->post('/sessions/{id}/reject',  [SessionController::class, 'reject']);
 $router->post('/sessions/{id}/comments', [SessionController::class, 'addComment']);
 $router->post('/comments/{id}/delete',   [SessionController::class, 'deleteComment']);
+$router->get('/sessions/{id}/calendar', [SessionController::class, 'calendar']);
 
 // --- game routy ---
 $router->get('/games/search', [GameController::class, 'search']);

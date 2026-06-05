@@ -6,6 +6,7 @@
  * @var array      $participants  All participations (with username + status)
  * @var array|null $mine          Current user's participation, or null
  * @var array      $comments      Comments/messages for this session (with username)
+ * @var string     $googleUrl
  */
 $s = $session;
 
@@ -51,6 +52,15 @@ $canViewMessages = $isCreator || $isAdmin
             <?= nl2br(htmlspecialchars($s['description'])) ?>
         </div>
     <?php endif; ?>
+
+    <div class="flex gap-2 mt-4">
+        <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/calendar" class="btn btn-sm btn-outline">
+            📅 Add to calendar
+        </a>
+        <a href="<?= htmlspecialchars($googleUrl) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline">
+            Add to Google Calendar
+        </a>
+    </div>
 
     <?php /* ===================== OWNER ACTIONS: edit / delete (creator or admin) ===================== */ ?>
     <?php if ($isCreator || $isAdmin): ?>

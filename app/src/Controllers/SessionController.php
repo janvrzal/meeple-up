@@ -238,14 +238,22 @@ class SessionController extends Controller
 
         $participation = new Participation();
 
+        [$start, $end] = $this->eventTimes($session);
+
+        $title = $session['title'] . (!empty($session['game_name']) ? ' – ' . $session['game_name'] : '');
+        $googleUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+            . '&text='     . urlencode($title)
+            . '&dates='    . $start->format('Ymd\THis\Z') . '/' . $end->format('Ymd\THis\Z')
+            . '&location=' . urlencode($session['location_name'] . ', ' . $session['location_city'])
+            . '&details='  . urlencode($session['description'] ?? '');
+
         $this->render('sessions/show', [
             'session'      => $session,
             'participants' => $participation->forSession($sessionId),
             'mine'         => Auth::check() ? $participation->find(Auth::id(), $sessionId) : null,
             'comments'     => (new Comment())->forSession($sessionId),
+            'googleUrl'    => $googleUrl,
         ]);
-
-
     }
 
     public function approve(string $id): void
@@ -322,5 +330,56 @@ class SessionController extends Controller
 
         $model->delete((int) $id);
         $this->redirect('/sessions/' . (int) $comment['session_id']);
+    }
+
+    public function calendar(string $id): void
+    {
+        $session = (new Session())->findById((int) $id);
+        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+
+        [$start, $end] = $this->eventTimes($session);
+
+        $summary  = $session['title'];
+        if (!empty($session['game_name'])) {
+            $summary .= ' – ' . $session['game_name'];
+        }
+        $location = $session['location_name'] . ', ' . $session['location_city'];
+
+        $ics = "BEGIN:VCALENDAR\r\n"
+            . "VERSION:2.0\r\n"
+            . "PRODID:-//Meeple-Up//EN\r\n"
+            . "BEGIN:VEVENT\r\n"
+            . 'UID:session-' . (int) $session['id'] . "@meeple-up\r\n"
+            . 'DTSTAMP:' . gmdate('Ymd\THis\Z') . "\r\n"
+            . 'DTSTART:' . $start->format('Ymd\THis\Z') . "\r\n"
+            . 'DTEND:' . $end->format('Ymd\THis\Z') . "\r\n"
+            . 'SUMMARY:' . $this->icsEscape($summary) . "\r\n"
+            . 'LOCATION:' . $this->icsEscape($location) . "\r\n"
+            . 'DESCRIPTION:' . $this->icsEscape($session['description'] ?? '') . "\r\n"
+            . "END:VEVENT\r\n"
+            . "END:VCALENDAR\r\n";
+
+        header('Content-Type: text/calendar; charset=utf-8');
+        header('Content-Disposition: attachment; filename="session-' . (int) $session['id'] . '.ics"');
+        echo $ics;
+    }
+
+    private function icsEscape(string $text): string
+    {
+        // RFC 5545: escapovat \ ; , a nové řádky
+        $text = str_replace(['\\', ';', ',', "\r\n", "\n"], ['\\\\', '\\;', '\\,', '\\n', '\\n'], $text);
+        return $text;
+    }
+
+    /** Vrátí [start, end] jako DateTime v UTC pro daný session. */
+    private function eventTimes(array $session): array
+    {
+        $start = new DateTime($session['scheduled_at'], new DateTimeZone('Europe/Prague'));
+        $start->setTimezone(new DateTimeZone('UTC'));
+
+        $minutes = (int) ($session['playing_time'] ?? 0) ?: 120;
+        $end = (clone $start)->modify("+{$minutes} minutes");
+
+        return [$start, $end];
     }
 }
