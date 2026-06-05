@@ -58,13 +58,17 @@ $router->get('/sessions/{id}',    [SessionController::class, 'show']);
 $router->post('/sessions/{id}/delete', [SessionController::class, 'destroy']);
 $router->get('/sessions/{id}/edit',    [SessionController::class, 'edit']);
 $router->post('/sessions/{id}/update', [SessionController::class, 'update']);
-$router->post('/sessions/{id}/join',  [SessionController::class, 'join']);
-$router->post('/sessions/{id}/leave', [SessionController::class, 'leave']);
-$router->post('/sessions/{id}/approve', [SessionController::class, 'approve']);
-$router->post('/sessions/{id}/reject',  [SessionController::class, 'reject']);
-$router->post('/sessions/{id}/comments', [SessionController::class, 'addComment']);
-$router->post('/comments/{id}/delete',   [SessionController::class, 'deleteComment']);
 $router->get('/sessions/{id}/calendar', [SessionController::class, 'calendar']);
+
+// --- participační routy ---
+$router->post('/sessions/{id}/join',  [ParticipationController::class, 'join']);
+$router->post('/sessions/{id}/leave', [ParticipationController::class, 'leave']);
+$router->post('/sessions/{id}/approve', [ParticipationController::class, 'approve']);
+$router->post('/sessions/{id}/reject',  [ParticipationController::class, 'reject']);
+
+// --- comment routy ---
+$router->post('/sessions/{id}/comments', [CommentController::class, 'store']);
+$router->post('/comments/{id}/delete',   [CommentController::class, 'destroy']);
 
 // --- game routy ---
 $router->get('/games/search', [GameController::class, 'search']);

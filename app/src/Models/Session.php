@@ -2,6 +2,19 @@
 
 class Session extends Model
 {
+    private function baseSelect(): string
+    {
+        return 'SELECT s.*,
+                   l.name AS location_name, l.city AS location_city,
+                   g.name AS game_name, g.thumbnail_url AS game_thumb,
+                   u.username AS creator_name,
+                   (SELECT COUNT(*) FROM participations p WHERE p.session_id = s.id) AS player_count
+            FROM sessions s
+            JOIN locations l ON l.id = s.location_id
+            LEFT JOIN games g ON g.id = s.game_id
+            JOIN users u ON u.id = s.creator_id';
+    }
+
     public function create(array $data): int {
         $sql = 'INSERT INTO sessions
                 (creator_id, location_id, game_id, title, scheduled_at, max_players, is_private, description)
@@ -23,35 +36,9 @@ class Session extends Model
 
     public function findById(int $id): ?array
     {
-        $sql = 'SELECT s.*,
-                       l.name AS location_name, l.city AS location_city,
-                       g.name AS game_name, g.thumbnail_url AS game_thumb,
-                       u.username AS creator_name,
-                       (SELECT COUNT(*) FROM participations p WHERE p.session_id = s.id) AS player_count
-                FROM sessions s
-                JOIN locations l ON l.id = s.location_id
-                LEFT JOIN games g ON g.id = s.game_id
-                JOIN users u ON u.id = s.creator_id
-                WHERE s.id = :id';
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->db->prepare($this->baseSelect() . ' WHERE s.id = :id');
         $stmt->execute(['id' => $id]);
         return $stmt->fetch() ?: null;
-    }
-
-    public function upcoming(): array
-    {
-        $sql = 'SELECT s.*,
-                       l.name AS location_name, l.city AS location_city,
-                       g.name AS game_name, g.thumbnail_url AS game_thumb,
-                       u.username AS creator_name,
-                       (SELECT COUNT(*) FROM participations p WHERE p.session_id = s.id) AS player_count
-                FROM sessions s
-                JOIN locations l ON l.id = s.location_id
-                LEFT JOIN games g ON g.id = s.game_id
-                JOIN users u ON u.id = s.creator_id
-                WHERE s.scheduled_at >= NOW() AND s.status = \'open\'
-                ORDER BY s.scheduled_at ASC';
-        return $this->db->query($sql)->fetchAll();
     }
 
     public function gamesInUpcoming(): array
@@ -66,16 +53,7 @@ class Session extends Model
 
     public function filtered(array $f): array
     {
-        $sql = 'SELECT s.*,
-                   l.name AS location_name, l.city AS location_city,
-                   g.name AS game_name, g.thumbnail_url AS game_thumb,
-                   u.username AS creator_name,
-                   (SELECT COUNT(*) FROM participations p WHERE p.session_id = s.id) AS player_count
-            FROM sessions s
-            JOIN locations l ON l.id = s.location_id
-            LEFT JOIN games g ON g.id = s.game_id
-            JOIN users u ON u.id = s.creator_id
-            WHERE s.scheduled_at >= NOW() AND s.status = \'open\'';
+        $sql = $this->baseSelect() . ' WHERE s.scheduled_at >= NOW() AND s.status = \'open\'';
 
         $params = [];
 
@@ -91,14 +69,14 @@ class Session extends Model
             $params['city'] = $f['city'];
         }
 
-        // filtr: jen s volnými místy (HAVING – pracuje s aliasem player_count)
-        if (!empty($f['free_only'])) {
-            $sql .= ' HAVING (s.max_players IS NULL OR player_count < s.max_players)';
-        }
-
         if (!empty($f['game_id'])) {
             $sql .= ' AND s.game_id = :game_id';
             $params['game_id'] = (int) $f['game_id'];
+        }
+
+        // filtr: jen s volnými místy (HAVING – pracuje s aliasem player_count)
+        if (!empty($f['free_only'])) {
+            $sql .= ' HAVING (s.max_players IS NULL OR player_count < s.max_players)';
         }
 
         $sql .= ' ORDER BY s.scheduled_at ASC';
@@ -132,5 +110,25 @@ class Session extends Model
     {
         $stmt = $this->db->prepare('DELETE FROM sessions WHERE id = :id');
         $stmt->execute(['id' => $id]);
+    }
+
+    public function forUser(int $userId): array
+    {
+        $sql = $this->baseSelect()
+            . ' WHERE s.scheduled_at >= NOW() AND s.status = \'open\'
+            AND (s.creator_id = :uid1
+                 OR EXISTS (SELECT 1 FROM participations p
+                            WHERE p.session_id = s.id AND p.user_id = :uid2 AND p.status = \'approved\'))
+            ORDER BY s.scheduled_at ASC';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['uid1' => $userId, 'uid2' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    public function countHostedBy(int $userId): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM sessions WHERE creator_id = :uid');
+        $stmt->execute(['uid' => $userId]);
+        return (int) $stmt->fetchColumn();
     }
 }
