@@ -1,11 +1,15 @@
 <?php
 /** @var array $errors */ /** @var string $username */ /** @var string $email */
 ?>
-<div class="max-w-md mx-auto card bg-base-100 shadow p-6">
-     <h1 class="text2xl font-bold mb-4">Registration</h1>
+<div class="max-w-md mx-auto card bg-base-100 shadow-lg mt-6">
+    <div class="card-body">
+        <h1 class="text-2xl font-bold flex items-center gap-2 mb-2">
+            <i class="ti ti-user-plus text-primary"></i> Registration
+        </h1>
+
      <?php if(!empty($errors)): ?>
-        <div class="alert alert-error mb-4">
-            <ul>
+        <div class="alert alert-error text-sm py-2">
+            <ul class="list-disc list-inside">
                 <?php foreach ($errors as $e): ?>
                     <li><?= htmlspecialchars($e) ?></li>
                 <?php endforeach; ?>
@@ -20,30 +24,40 @@
             <label class="label" for="username">
                 <span class="label-text">Username</span>
             </label>
-            <input id="username" name="username" type="text" required
-                   value="<?= htmlspecialchars($username ?? '') ?>"
-                   class="input input-bordered w-full" />
+            <div class="relative">
+                <i class="ti ti-user absolute left-3 top-1/2 -translate-y-1/2 opacity-50"></i>
+                <input id="username" name="username" type="text" required
+                       value="<?= htmlspecialchars($username ?? '') ?>"
+                       class="input input-bordered w-full pl-9">
+            </div>
         </div>
 
         <div class="form-control">
             <label class="label" for="email">
                 <span class="label-text">E-mail</span>
             </label>
-            <input id="email" name="email" type="email" required
-                   value="<?= htmlspecialchars($email ?? '') ?>"
-                   class="input input-bordered w-full" />
+            <div class="relative">
+                <i class="ti ti-mail absolute left-3 top-1/2 -translate-y-1/2 opacity-50"></i>
+                <input id="email" name="email" type="email" required
+                       value="<?= htmlspecialchars($email ?? '') ?>"
+                       class="input input-bordered w-full pl-9">
+            </div>
         </div>
 
         <div class="form-control">
             <label class="label" for="password">
                 <span class="label-text">Password</span>
             </label>
-            <input id="password" name="password" type="password" required minlength="8"
-                   class="input input-bordered w-full" />
+            <div class="relative">
+                <i class="ti ti-lock absolute left-3 top-1/2 -translate-y-1/2 opacity-50"></i>
+                <input id="password" name="password" type="password" required
+                       class="input input-bordered w-full pl-9">
+            </div>
         </div>
 
-        <button class="btn btn-primary w-full">Register</button>
+        <button class="btn btn-primary w-full gap-1"><i class="ti ti-user-plus"></i>Register</button>
     </form>
 
     <a href="<?= BASE_PATH ?>/login" class="link mt-3 inline-block">I already have an account</a>
+    </div>
 </div>

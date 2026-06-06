@@ -5,21 +5,18 @@ class CommentController extends Controller
     public function store(string $id): void
     {
         $this->requireLogin();
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         $sessionId = (int) $id;
 
         $session = (new Session())->findById($sessionId);
-        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         $isCreator = (int) $session['creator_id'] === Auth::id();
         $mine = (new Participation())->find(Auth::id(), $sessionId);
 
         if (!$isCreator && ($mine === null || $mine['status'] !== 'approved')) {
-            http_response_code(403);
-            exit('Only participants can post messages.');
+            $this->abort(403, 'Only participants can post messages.');
         }
 
         $body = trim($_POST['body'] ?? '');
@@ -34,13 +31,11 @@ class CommentController extends Controller
     public function destroy(string $id): void
     {
         $this->requireLogin();
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         $model = new Comment();
         $comment = $model->findById((int) $id);
-        if ($comment === null) { http_response_code(404); echo 'Comment not found'; return; }
+        if ($comment === null) { $this->abort(404, 'Session not found'); }
 
         $this->requireOwner((int) $comment['user_id']);
 

@@ -15,20 +15,28 @@ foreach ($games as $g) {
 }
 ?>
 
-<div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold">Upcoming sessions</h1>
-    <a href="<?= BASE_PATH ?>/sessions/create" class="btn btn-primary btn-sm">+ New session</a>
+<div class="flex items-center justify-between mb-5">
+    <h1 class="text-2xl font-bold flex items-center gap-2">
+        <i class="ti ti-calendar-event text-primary"></i> Upcoming sessions
+    </h1>
+    <a href="<?= BASE_PATH ?>/sessions/create" class="btn btn-primary btn-sm gap-1">
+        <i class="ti ti-plus"></i> New session
+    </a>
 </div>
 
-<form method="GET" action="<?= BASE_PATH ?>/sessions" class="flex flex-wrap items-end gap-2 mb-4">
+<?php /* ===== Filtr ===== */ ?>
+<form method="GET" action="<?= BASE_PATH ?>/sessions"
+      class="flex flex-wrap items-center gap-2 mb-6 p-3 bg-base-100 rounded-box shadow-sm">
 
-    <?php /* Location combobox */ ?>
     <div class="combobox relative">
         <label for="filter-location" class="sr-only">Location</label>
-        <input type="text" id="filter-location" class="cb-input input input-bordered input-sm" placeholder="All locations"
-               autocomplete="off" value="<?= htmlspecialchars($selLocation) ?>">
+        <div class="relative">
+            <i class="ti ti-map-pin absolute left-3 top-1/2 -translate-y-1/2 opacity-50"></i>
+            <input type="text" id="filter-location" class="cb-input input input-bordered input-sm pl-8 w-56"
+                   placeholder="All locations" autocomplete="off" value="<?= htmlspecialchars($selLocation) ?>">
+        </div>
         <input type="hidden" name="location_id" value="<?= htmlspecialchars($filters['location_id'] ?? '') ?>">
-        <ul class="cb-list menu bg-base-200 rounded-box absolute z-10 mt-1 max-h-60 overflow-auto hidden w-64">
+        <ul class="cb-list menu bg-base-100 shadow rounded-box absolute z-10 mt-1 max-h-60 overflow-auto hidden w-64">
             <li data-id=""><a>All locations</a></li>
             <?php foreach ($locations as $l): ?>
                 <li data-id="<?= $l['id'] ?>"><a><?= htmlspecialchars($l['name'] . ' (' . $l['city'] . ')') ?></a></li>
@@ -36,13 +44,15 @@ foreach ($games as $g) {
         </ul>
     </div>
 
-    <?php /* Game combobox */ ?>
     <div class="combobox relative">
         <label for="filter-game" class="sr-only">Game</label>
-        <input type="text" id="filter-game" class="cb-input input input-bordered input-sm" placeholder="All games"
-               autocomplete="off" value="<?= htmlspecialchars($selGame) ?>">
+        <div class="relative">
+            <i class="ti ti-dice absolute left-3 top-1/2 -translate-y-1/2 opacity-50"></i>
+            <input type="text" id="filter-game" class="cb-input input input-bordered input-sm pl-8 w-56"
+                   placeholder="All games" autocomplete="off" value="<?= htmlspecialchars($selGame) ?>">
+        </div>
         <input type="hidden" name="game_id" value="<?= htmlspecialchars($filters['game_id'] ?? '') ?>">
-        <ul class="cb-list menu bg-base-200 rounded-box absolute z-10 mt-1 max-h-60 overflow-auto hidden w-64">
+        <ul class="cb-list menu bg-base-100 shadow rounded-box absolute z-10 mt-1 max-h-60 overflow-auto hidden w-64">
             <li data-id=""><a>All games</a></li>
             <?php foreach ($games as $g): ?>
                 <li data-id="<?= $g['id'] ?>"><a><?= htmlspecialchars($g['name']) ?></a></li>
@@ -52,13 +62,39 @@ foreach ($games as $g) {
 
     <label class="label cursor-pointer gap-2">
         <input type="checkbox" name="free_only" value="1" class="checkbox checkbox-sm"
-                <?= !empty($filters['free_only']) ? 'checked' : '' ?>>
+            <?= !empty($filters['free_only']) ? 'checked' : '' ?>>
         <span class="label-text">Free seats only</span>
     </label>
 
-    <button class="btn btn-sm btn-primary">Filter</button>
+    <button class="btn btn-sm btn-primary gap-1"><i class="ti ti-filter"></i> Filter</button>
     <a href="<?= BASE_PATH ?>/sessions" class="btn btn-sm btn-ghost">Reset</a>
 </form>
+
+<?php /* ===== Výpis ===== */ ?>
+<?php if (empty($sessions)): ?>
+    <div class="flex flex-col items-center text-center py-16 opacity-70">
+        <i class="ti ti-mood-empty text-5xl mb-3"></i>
+        <p class="text-lg">No upcoming sessions match your filters.</p>
+        <a href="<?= BASE_PATH ?>/sessions/create" class="btn btn-primary btn-sm mt-4 gap-1">
+            <i class="ti ti-plus"></i> Create one
+        </a>
+    </div>
+<?php else: ?>
+    <div class="grid gap-4 md:grid-cols-2">
+        <?php foreach ($sessions as $s): ?>
+            <?php
+            $full = $s['max_players'] !== null && (int) $s['player_count'] >= (int) $s['max_players'];
+            if ($s['max_players'] === null) {
+                $cardBadge = '<span class="badge badge-ghost badge-sm gap-1"><i class="ti ti-users"></i> ' . (int) $s['player_count'] . '</span>';
+            } else {
+                $cardBadge = '<span class="badge badge-sm gap-1 ' . ($full ? 'badge-error' : 'badge-success') . '">'
+                        . '<i class="ti ti-users"></i> ' . (int) $s['player_count'] . '/' . (int) $s['max_players'] . '</span>';
+            }
+            require __DIR__ . '/../partials/session-card.php';
+            ?>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
 
 <script>
     document.querySelectorAll('.combobox').forEach(box => {
@@ -73,7 +109,7 @@ foreach ($games as $g) {
         input.addEventListener('focus', show);
         input.addEventListener('input', () => {
             const q = input.value.trim().toLowerCase();
-            hidden.value = '';                       // psaní ruší výběr, dokud neklikneš
+            hidden.value = '';
             items.forEach(li => {
                 const match = q === '' || li.textContent.trim().toLowerCase().includes(q);
                 li.style.display = match ? '' : 'none';
@@ -90,31 +126,3 @@ foreach ($games as $g) {
         document.addEventListener('click', e => { if (!box.contains(e.target)) hide(); });
     });
 </script>
-
-<?php if (empty($sessions)): ?>
-    <div class="text-center opacity-70 py-10">No upcoming sessions yet.</div>
-<?php else: ?>
-    <div class="grid gap-3 md:grid-cols-2">
-        <?php foreach ($sessions as $s): ?>
-            <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>" class="card bg-base-100 shadow hover:shadow-md transition">
-                <div class="card-body p-4">
-                    <h2 class="card-title text-base"><?= htmlspecialchars($s['title']) ?></h2>
-                    <p class="text-sm opacity-80">
-                        <?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?>
-                    </p>
-                    <p class="text-sm">
-                        📍 <?= htmlspecialchars($s['location_name'] . ', ' . $s['location_city']) ?><br>
-                        🕒 <?= date('j.n.Y H:i', strtotime($s['scheduled_at'])) ?>
-                    </p>
-                    <div class="text-sm">
-                        <?php if ($s['max_players'] === null): ?>
-                            👥 <?= (int) $s['player_count'] ?> joined (no limit)
-                        <?php else: ?>
-                            👥 <?= (int) $s['player_count'] ?> / <?= (int) $s['max_players'] ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </a>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>

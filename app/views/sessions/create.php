@@ -1,8 +1,11 @@
 <?php
 /** @var array $locations */ /** @var array $errors */ /** @var array $old */
 ?>
-<div class="max-w-2xl mx-auto card bg-base-100 shadow p-6">
-    <h1 class="text-2xl font-bold mb-4"><?= htmlspecialchars($heading ?? 'Create a session') ?></h1>
+<div class="max-w-2xl mx-auto card bg-base-100 shadow">
+    <div class="card-body">
+    <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">
+        <i class="ti ti-calendar-plus text-primary"></i><?= htmlspecialchars($heading ?? 'Create a session') ?>
+    </h1>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-error mb-4">
@@ -19,7 +22,7 @@
 <!--        Název sezení-->
         <div class="form-control">
             <label class="label" for="title"><span class="label-text">Title</span></label>
-            <input id="title" name="title" type="text" required
+            <input id="title" name="title" type="text" placeholder="Friday night magic..." required
                    value="<?= htmlspecialchars($old['title'] ?? '') ?>"
                    class="input input-bordered w-full" />
         </div>
@@ -89,28 +92,63 @@
         </script>
 
 <!--        Místo sezení-->
-        <div class="form-control">
-            <label class="label" for="location_id"><span class="label-text">Location</span></label>
-            <select id="location_id" name="location_id" class="select select-bordered w-full">
-                <option value="">— choose existing —</option>
-                <?php foreach ($locations as $loc): ?>
-                    <option value="<?= $loc['id'] ?>"
-                            <?= (($old['location_id'] ?? '') == $loc['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($loc['name'] . ' (' . $loc['city'] . ')') ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+        <!-- Místo sezení -->
+        <div class="grid sm:grid-cols-2 gap-3">
+            <div id="loc-existing" class="form-control transition">
+                <label class="label" for="location_id"><span class="label-text">Choose a venue</span></label>
+                <select id="location_id" name="location_id" class="select select-bordered w-full">
+                    <option value="">— select existing —</option>
+                    <?php foreach ($locations as $loc): ?>
+                        <option value="<?= $loc['id'] ?>"
+                                <?= (($old['location_id'] ?? '') == $loc['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($loc['name'] . ' (' . $loc['city'] . ')') ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div id="loc-new" class="form-control transition">
+                <label class="label"><span class="label-text">…or add a new one</span></label>
+                <div class="space-y-2">
+                    <label for="new_location_name" class="sr-only">New venue name</label>
+                    <input id="new_location_name" name="new_location_name" type="text" placeholder="Venue name"
+                           value="<?= htmlspecialchars($old['new_location_name'] ?? '') ?>"
+                           class="input input-bordered w-full" />
+                    <label for="new_location_city" class="sr-only">New venue city</label>
+                    <input id="new_location_city" name="new_location_city" type="text" placeholder="City"
+                           value="<?= htmlspecialchars($old['new_location_city'] ?? '') ?>"
+                           class="input input-bordered w-full" />
+                </div>
+            </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-            <label class="label" for="new_location_name"><span class="label-text">New Location Name</span></label>
-            <input id='new_location_name' name="new_location_name" type="text" placeholder="New venue name"
-                   value="<?= htmlspecialchars($old['new_location_name'] ?? '') ?>"
-                   class="input input-bordered w-full" />
-            <label class="label" for="new_location_city"><span class="label-text">New Location City</span></label>
-            <input id='new_location_city' name="new_location_city" type="text" placeholder="City"
-                   value="<?= htmlspecialchars($old['new_location_city'] ?? '') ?>"
-                   class="input input-bordered w-full" />
-        </div>
+
+        <script>
+            (function () {
+                const sel  = document.getElementById('location_id');
+                const name = document.getElementById('new_location_name');
+                const city = document.getElementById('new_location_city');
+                const boxExisting = document.getElementById('loc-existing');
+                const boxNew      = document.getElementById('loc-new');
+
+                function refresh() {
+                    const usingExisting = sel.value !== '';
+                    const usingNew = name.value.trim() !== '' || city.value.trim() !== '';
+                    boxNew.classList.toggle('opacity-40', usingExisting);
+                    boxExisting.classList.toggle('opacity-40', usingNew && !usingExisting);
+                }
+
+                sel.addEventListener('change', () => {
+                    if (sel.value !== '') { name.value = ''; city.value = ''; }   // výběr existující → vyčisti novou
+                    refresh();
+                });
+                [name, city].forEach(el => el.addEventListener('input', () => {
+                    if (name.value.trim() !== '' || city.value.trim() !== '') sel.value = '';  // psaní nové → zruš výběr
+                    refresh();
+                }));
+
+                refresh();   // počáteční stav (i pro edit s předvyplněním)
+            })();
+        </script>
 
 <!--        Čas sezení-->
         <div class="grid grid-cols-2 gap-2">
@@ -153,6 +191,7 @@
                       class="textarea textarea-bordered w-full"><?= htmlspecialchars($old['description'] ?? '') ?></textarea>
         </div>
 
-        <button class="btn btn-primary w-full"><?= htmlspecialchars($submit ?? 'Create session') ?></button>
+        <button class="btn btn-primary w-full gap-1"><i class="ti ti-check"></i> <?= htmlspecialchars($submit ?? 'Create session') ?></button>
     </form>
+    </div>
 </div>

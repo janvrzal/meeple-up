@@ -42,8 +42,7 @@ abstract class Controller
     {
         $this->requireLogin();
         if ((Auth::user()['role'] ?? 'user') !== 'admin') {
-            http_response_code(403);
-            exit('Forbidden');
+            $this->abort(403, 'Forbidden');
         }
     }
 
@@ -55,9 +54,21 @@ abstract class Controller
         $isAdmin = (Auth::user()['role'] ?? 'user') === 'admin';
 
         if (!$isOwner && !$isAdmin) {
-            http_response_code(403);
-            exit('Forbidden');
+            $this->abort(403, 'Forbidden');
         }
     }
 
+    protected function abort(int $code, string $message = ''): void
+    {
+        http_response_code($code);
+        echo $message !== '' ? $message : (string) $code;
+        exit;
+    }
+
+    protected function verifyCsrf(): void
+    {
+        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
+            $this->abort(419, 'Invalid CSRF token');
+        }
+    }
 }

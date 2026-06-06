@@ -9,10 +9,7 @@ class AuthController extends Controller
 
     public function register(): void{
         $this->requireGuest();
-        if(!Csrf::check($_POST['csrf_token'] ?? null)){
-            http_response_code(419);
-            exit("Invalid CSRF token");
-        }
+        $this->verifyCsrf();
 
         $username = trim($_POST['username'] ?? "");
         $email = trim($_POST['email'] ?? "");
@@ -60,10 +57,7 @@ class AuthController extends Controller
 
     public function login(): void{
         $this->requireGuest();
-        if(!Csrf::check($_POST['csrf_token'] ?? null)){
-            http_response_code(419);
-            exit("Invalid CSRF token");
-        }
+        $this->verifyCsrf();
 
         $email = trim($_POST['email'] ?? "");
         $password = $_POST['password'] ?? "";

@@ -5,13 +5,11 @@ class ParticipationController extends Controller
     public function join(string $id): void
     {
         $this->requireLogin();
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         $sessionId = (int) $id;
         $session = (new Session())->findById($sessionId);
-        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         $participation = new Participation();
 
@@ -36,9 +34,7 @@ class ParticipationController extends Controller
     public function leave(string $id): void
     {
         $this->requireLogin();
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         (new Participation())->leave(Auth::id(), (int) $id);
         $this->redirect('/sessions/' . (int) $id);
@@ -46,12 +42,10 @@ class ParticipationController extends Controller
 
     public function approve(string $id): void
     {
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
         $sessionId = (int) $id;
         $session = (new Session())->findById($sessionId);
-        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
         $this->requireOwner((int) $session['creator_id']);
 
         $userId = (int) ($_POST['user_id'] ?? 0);
@@ -61,12 +55,10 @@ class ParticipationController extends Controller
 
     public function reject(string $id): void
     {
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
         $sessionId = (int) $id;
         $session = (new Session())->findById($sessionId);
-        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
         $this->requireOwner((int) $session['creator_id']);
 
         $userId = (int) ($_POST['user_id'] ?? 0);

@@ -11,10 +11,7 @@ class SessionController extends Controller
     public function store(): void{
         $this->requireLogin();
 
-        if(!Csrf::check($_POST['csrf_token'] ?? null)){
-            http_response_code(419);
-            exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         $result=$this->collectInput();
         if ($result['errors']) {
@@ -37,11 +34,7 @@ class SessionController extends Controller
     public function edit(int $id): void{
         $session = (new Session())->findById((int) $id);
 
-        if ($session === null) {
-            http_response_code(404);
-            echo 'Session not found';
-            return;
-        }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         $this->requireOwner((int) $session['creator_id']);
 
@@ -68,17 +61,11 @@ class SessionController extends Controller
     }
 
     public function update(int $id): void{
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419); exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         $model = new Session();
         $session = $model->findById((int) $id);
-        if ($session === null) {
-            http_response_code(404);
-            echo 'Session not found';
-            return;
-        }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         $this->requireOwner((int) $session['creator_id']);
 
@@ -100,17 +87,11 @@ class SessionController extends Controller
     }
 
     public function destroy(string $id): void{
-        if (!Csrf::check($_POST['csrf_token'] ?? null)) {
-            http_response_code(419);
-            exit('Invalid CSRF token');
-        }
+        $this->verifyCsrf();
 
         $model = new Session();
         $session = $model->findById((int) $id);
-        if ($session === null) {
-            http_response_code(404);
-            exit('Session not found.');
-        }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         $this->requireOwner((int) $session['creator_id']);
 
@@ -188,11 +169,7 @@ class SessionController extends Controller
     {
         $sessionId = (int) $id;
         $session = (new Session())->findById($sessionId);
-        if ($session === null) {
-            http_response_code(404);
-            echo 'Session not found';
-            return;
-        }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         $participation = new Participation();
 
@@ -217,7 +194,7 @@ class SessionController extends Controller
     public function calendar(string $id): void
     {
         $session = (new Session())->findById((int) $id);
-        if ($session === null) { http_response_code(404); echo 'Session not found'; return; }
+        if ($session === null) { $this->abort(404, 'Session not found'); }
 
         [$start, $end] = $this->eventTimes($session);
 
