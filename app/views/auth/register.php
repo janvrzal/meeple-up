@@ -1,5 +1,5 @@
 <?php
-/** @var array $errors */ /** @var string $username */ /** @var string $email */
+/** @var array $errors */ /** @var string $username */ /** @var string $email */ /** @var array $cities */
 ?>
 <div class="max-w-md mx-auto card bg-base-100 shadow-lg mt-6">
     <div class="card-body">
@@ -53,6 +53,29 @@
                 <input id="password" name="password" type="password" required
                        class="input input-bordered w-full pl-9">
             </div>
+        </div>
+
+        <div class="form-control">
+            <label class="label" for="city"><span class="label-text">City</span></label>
+            <?php
+            $userCity = $user['city'] ?? '';
+            // kdyby uživatel měl uložené město, co není v aktuální sadě (starší data), přidej ho
+            if ($userCity !== '' && !in_array($userCity, $cities, true)) {
+                $cities[] = $userCity;
+                sort($cities);
+            }
+            ?>
+            <select id="city" name="city" class="select select-bordered w-full">
+                <option value="">— not set —</option>
+                <?php foreach ($cities as $c): ?>
+                    <option value="<?= htmlspecialchars($c) ?>" <?= $userCity === $c ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($c) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <label class="label">
+                <span class="label-text-alt opacity-60">Cities come from existing venues. Add a session venue to see more.</span>
+            </label>
         </div>
 
         <button class="btn btn-primary w-full gap-1"><i class="ti ti-user-plus"></i>Register</button>

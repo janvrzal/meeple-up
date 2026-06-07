@@ -73,6 +73,15 @@ $router->post('/comments/{id}/delete',   [CommentController::class, 'destroy']);
 // --- game routy ---
 $router->get('/games/search', [GameController::class, 'search']);
 
+// --- favorite routy ---
+$router->get('/games',                 [FavoriteController::class, 'index']);
+$router->post('/games/{id}/favorite',  [FavoriteController::class, 'toggle']);
+
+// --- account routy ---
+$router->get('/account',           [AccountController::class, 'index']);
+$router->post('/account/profile',  [AccountController::class, 'updateProfile']);
+$router->post('/account/password', [AccountController::class, 'updatePassword']);
+
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

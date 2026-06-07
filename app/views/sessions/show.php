@@ -29,10 +29,7 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
     <i class="ti ti-arrow-left"></i> Back to sessions
 </a>
 
-<div class="max-w-2xl mx-auto card bg-base-100 shadow-lg overflow-hidden">
-
-    <?php /* thin colored accent strip (per-game color) */ ?>
-    <div class="h-1.5" style="background-color: <?= $accent ?>"></div>
+<div class="max-w-2xl mx-auto card bg-base-100 shadow-lg">
 
     <?php /* ===================== HEADER ===================== */ ?>
     <div class="px-6 pt-5">
@@ -45,9 +42,28 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
                     <?php endif; ?>
                 </h1>
                 <div class="flex items-center gap-2 mt-2 text-lg font-medium">
-                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color: <?= $accent ?>"></span>
-                    <i class="ti ti-dice opacity-70"></i>
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white"
+                          style="background-color: <?= $accent ?>">
+                        <i class="ti ti-dice text-base"></i>
+                    </span>
                     <?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?>
+                    <?php if (Auth::check() && $s['game_id']):
+                        $isFav = (new Favorite())->isFavorite(Auth::id(), (int) $s['game_id']); ?>
+                        <form method="POST" action="<?= BASE_PATH ?>/games/<?= (int) $s['game_id'] ?>/favorite">
+                            <?= Csrf::field() ?>
+                            <input type="hidden" name="redirect" value="/sessions/<?= (int) $s['id'] ?>">
+                            <button class="btn btn-ghost btn-sm btn-circle <?= $isFav ? 'text-error' : '' ?>"
+                                    title="<?= $isFav ? 'Remove from favorites' : 'Add to favorites' ?>">
+                                <?php if ($isFav): ?>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.26z"/>
+                                    </svg>
+                                <?php else: ?>
+                                    <i class="ti ti-heart text-lg"></i>
+                                <?php endif; ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
 

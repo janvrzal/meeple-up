@@ -25,7 +25,7 @@ class Router
         }
 
         http_response_code(404);
-        echo '404 Not Found';
+        View::render('error', ['code' => 404, 'message' => '']);
     }
 
     public function callHandler($handler, array $params = []) : void{

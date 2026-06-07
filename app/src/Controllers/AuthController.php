@@ -4,7 +4,7 @@ class AuthController extends Controller
 {
     public function showRegister(): void{
         $this->requireGuest();
-        $this->render('auth/register');
+        $this->render('auth/register', ['cities' => (new Location())->cities()]);
     }
 
     public function register(): void{
@@ -14,6 +14,7 @@ class AuthController extends Controller
         $username = trim($_POST['username'] ?? "");
         $email = trim($_POST['email'] ?? "");
         $password = $_POST['password'] ?? "";
+        $city = trim($_POST['city'] ?? '');
 
         $errors = [];
 
@@ -41,11 +42,12 @@ class AuthController extends Controller
                 'errors'   => $errors,
                 'username' => $username,
                 'email'    => $email,
+                'cities'   => (new Location())->cities(),
             ]);
             return;
         }
 
-        $id = $userModel->create($username, $email, $password);
+        $id = $userModel->create($username, $email, $password, $city);
         Auth::login(['id' => $id]);
         $this->redirect('/');
     }
@@ -82,5 +84,4 @@ class AuthController extends Controller
         Auth::logout();
         $this->redirect('/');
     }
-
 }

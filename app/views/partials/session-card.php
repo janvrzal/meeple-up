@@ -4,21 +4,27 @@
 $accent = Avatar::color($s['game_name'] ?? $s['title']);
 ?>
 <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>"
-   class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200"
-   style="border-left: 4px solid <?= $accent ?>">
-    <div class="card-body p-4 gap-2">
-        <div class="flex items-start justify-between gap-2">
-            <h2 class="card-title text-base"><?= htmlspecialchars($s['title']) ?></h2>
-            <?= $cardBadge ?? '' ?>
+   class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200">
+    <div class="card-body p-4 flex-row items-start gap-3">
+
+        <?php /* game token — barevná identita hry (ne stav) */ ?>
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-white"
+             style="background-color: <?= $accent ?>">
+            <i class="ti ti-dice text-xl"></i>
         </div>
-        <div class="flex items-center gap-1 text-sm opacity-80">
-            <i class="ti ti-dice"></i> <?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?>
-        </div>
-        <div class="flex flex-col gap-1 text-sm">
-            <span class="flex items-center gap-1"><i class="ti ti-map-pin opacity-60"></i>
-                <?= htmlspecialchars($s['location_name'] . ', ' . $s['location_city']) ?></span>
-            <span class="flex items-center gap-1"><i class="ti ti-clock opacity-60"></i>
-                <?= date('j.n.Y H:i', strtotime($s['scheduled_at'])) ?></span>
+
+        <div class="min-w-0 flex-1 flex flex-col gap-1">
+            <div class="flex items-start justify-between gap-2">
+                <h2 class="card-title text-base"><?= htmlspecialchars($s['title']) ?></h2>
+                <?= $cardBadge ?? '' ?>
+            </div>
+            <div class="text-sm opacity-80 truncate"><?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?></div>
+            <div class="flex flex-col gap-1 text-sm">
+                <span class="flex items-center gap-1"><i class="ti ti-map-pin opacity-60"></i>
+                    <?= htmlspecialchars($s['location_name'] . ', ' . $s['location_city']) ?></span>
+                <span class="flex items-center gap-1"><i class="ti ti-clock opacity-60"></i>
+                    <?= date('j.n.Y H:i', strtotime($s['scheduled_at'])) ?></span>
+            </div>
         </div>
     </div>
 </a>

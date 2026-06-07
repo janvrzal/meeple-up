@@ -26,8 +26,8 @@
 <div class="flex flex-wrap gap-2 mb-8">
     <a href="<?= BASE_PATH ?>/sessions/create" class="btn btn-primary btn-sm gap-1"><i class="ti ti-plus"></i> New session</a>
     <a href="<?= BASE_PATH ?>/sessions" class="btn btn-sm gap-1"><i class="ti ti-search"></i> Browse sessions</a>
-    <span class="btn btn-sm btn-disabled gap-1"><i class="ti ti-cards"></i> Manage games <span class="badge badge-xs">soon</span></span>
-    <span class="btn btn-sm btn-disabled gap-1"><i class="ti ti-user-cog"></i> Account <span class="badge badge-xs">soon</span></span>
+    <a href="<?= BASE_PATH ?>/games" class="btn btn-sm gap-1"><i class="ti ti-cards"></i> Favorite games</a>
+    <a href="<?= BASE_PATH ?>/account" class="btn btn-sm gap-1"><i class="ti ti-user-cog"></i> Account</a>
 </div>
 
 <?php /* ===== Žádosti ke schválení ===== */ ?>

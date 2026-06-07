@@ -1,5 +1,5 @@
 <?php
-/** @var array $locations */ /** @var array $errors */ /** @var array $old */
+/** @var array $locations */ /** @var array $errors */ /** @var array $old */ /** @var array $favorites */
 ?>
 <div class="max-w-2xl mx-auto card bg-base-100 shadow">
     <div class="card-body">
@@ -47,12 +47,30 @@
                 let timer;
                 let controller;                 // pro rušení rozdělaných requestů
                 const cache = {};               // jednoduchá paměť výsledků
+                const favorites = <?= json_encode(array_map(fn($f) => [
+                        'bgg_id'         => (int) $f['bgg_id'],
+                        'name'           => $f['name'],
+                        'year_published' => $f['year_published'] ? (int) $f['year_published'] : null,
+                ], $favorites)) ?>;
+
+                function showFavorites() {
+                    if (favorites.length === 0) { list.classList.add('hidden'); return; }
+                    render(favorites);
+                }
+
+                input.addEventListener('focus', () => {
+                    if (input.value.trim() === '') showFavorites();
+                });
 
                 input.addEventListener('input', () => {
                     hidden.value = '';
                     clearTimeout(timer);
                     const q = input.value.trim();
-                    if (q.length < 2) { list.classList.add('hidden'); list.innerHTML = ''; return; }
+                    if (q.length < 2) {
+                        if (q === '') { showFavorites(); }
+                        else { list.classList.add('hidden'); list.innerHTML = ''; }
+                        return;
+                    }
 
                     timer = setTimeout(async () => {
                         // 1) z cache okamžitě
@@ -88,11 +106,17 @@
                     });
                     list.classList.remove('hidden');
                 }
-            })();
+
+            })()
+            document.querySelectorAll('.fav-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    input.value  = chip.dataset.name;   // input = game-search (už je v tom scope)
+                    hidden.value = chip.dataset.bgg;     // hidden = bgg-id
+                });
+            });
         </script>
 
 <!--        Místo sezení-->
-        <!-- Místo sezení -->
         <div class="grid sm:grid-cols-2 gap-3">
             <div id="loc-existing" class="form-control transition">
                 <label class="label" for="location_id"><span class="label-text">Choose a venue</span></label>

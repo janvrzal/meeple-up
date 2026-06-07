@@ -5,7 +5,11 @@ class SessionController extends Controller
     public function create(): void{
         $this->requireLogin();
         $locations = (new Location())->all();
-        $this->render('sessions/create', ['locations' => $locations]);
+        $this->render(
+            'sessions/create', [
+                'locations' => $locations,
+                'favorites' => (new Favorite())->forUser(Auth::id())
+            ]);
     }
 
     public function store(): void{
@@ -43,6 +47,7 @@ class SessionController extends Controller
         $dt = strtotime($session['scheduled_at']);
         $this->render('sessions/create', [
             'locations' => (new Location())->all(),
+            'favorites' => (new Favorite())->forUser(Auth::id()),
             'heading'   => 'Edit session',
             'submit'    => 'Save changes',
             'action'    => BASE_PATH . '/sessions/' . $id . '/update',

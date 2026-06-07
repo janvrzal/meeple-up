@@ -24,4 +24,11 @@ class Location extends Model
         return (int) $this->db->lastInsertId();
     }
 
+    public function cities(): array
+    {
+        $rows = $this->db->query(
+            'SELECT DISTINCT city FROM locations WHERE city != \'\' ORDER BY city'
+        )->fetchAll();
+        return array_column($rows, 'city');
+    }
 }
