@@ -24,12 +24,10 @@
         <div class="card bg-base-100 shadow-sm">
             <ul class="divide-y divide-base-200">
                 <?php foreach ($games as $g): ?>
-                    <?php $accent = Avatar::color($g['name']); ?>
                     <li class="group flex items-center gap-3 px-4 py-3 hover:bg-base-200/40 transition">
 
-                        <?php /* game token (identita hry) */ ?>
-                        <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-white"
-                              style="background-color: <?= $accent ?>">
+                        <?php /* game token — jednotná brand barva */ ?>
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
                             <i class="ti ti-dice"></i>
                         </span>
 

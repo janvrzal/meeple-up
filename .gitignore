@@ -2,3 +2,8 @@
 app/.env
 .idea/
 *.log
+/clear.php
+/diag.php
+/import_catalog.php
+/seeder.php
+/seeder_web.php

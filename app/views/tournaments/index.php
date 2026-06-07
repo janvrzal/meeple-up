@@ -24,12 +24,10 @@
 <?php else: ?>
     <div class="grid gap-4 md:grid-cols-2">
         <?php foreach ($tournaments as $t): ?>
-            <?php $accent = Avatar::color($t['game_name']); ?>
             <a href="<?= BASE_PATH ?>/tournaments/<?= $t['id'] ?>"
                class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200">
                 <div class="card-body p-4 flex-row items-center gap-3">
-                    <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 text-white"
-                         style="background-color: <?= $accent ?>">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
                         <i class="ti ti-trophy text-2xl"></i>
                     </div>
                     <div class="min-w-0 mr-auto">

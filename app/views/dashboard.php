@@ -24,7 +24,6 @@ foreach ($active as $cs) {
         'id'    => (int) $cs['id'],
         'title' => $cs['title'],
         'time'  => date('H:i', strtotime($cs['scheduled_at'])),
-        'color' => Avatar::color($cs['game_name'] ?? $cs['title']),
     ];
 }
 ?>
@@ -34,7 +33,9 @@ foreach ($active as $cs) {
     <h1 class="text-2xl font-bold">Hi, <?= htmlspecialchars($user['username']) ?></h1>
     <div class="flex flex-wrap gap-2">
         <a href="<?= BASE_PATH ?>/sessions/create" class="btn btn-primary btn-sm gap-1"><i class="ti ti-plus"></i> New session</a>
-        <a href="<?= BASE_PATH ?>/sessions" class="btn btn-sm gap-1"><i class="ti ti-search"></i> Browse</a>
+        <a href="<?= BASE_PATH ?>/sessions" class="btn btn-sm btn-ghost gap-1"><i class="ti ti-calendar-event"></i> Sessions</a>
+        <a href="<?= BASE_PATH ?>/tournaments" class="btn btn-sm btn-ghost gap-1"><i class="ti ti-trophy"></i> Tournaments</a>
+        <a href="<?= BASE_PATH ?>/games" class="btn btn-sm btn-ghost gap-1"><i class="ti ti-cards"></i> My games</a>
     </div>
 </div>
 
@@ -54,7 +55,6 @@ foreach ($active as $cs) {
             </div>
         <?php else: ?>
             <?php
-            $accent = Avatar::color($next['game_name'] ?? $next['title']);
             $isHost = (int) $next['creator_id'] === Auth::id();
             ?>
             <div class="card bg-base-100 shadow-md overflow-hidden">
@@ -70,8 +70,7 @@ foreach ($active as $cs) {
                 </div>
                 <div class="card-body p-5 gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 text-white"
-                             style="background-color: <?= $accent ?>">
+                        <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
                             <i class="ti ti-dice text-2xl"></i>
                         </div>
                         <div class="min-w-0">
@@ -137,12 +136,10 @@ foreach ($active as $cs) {
             <?php else: ?>
                 <div class="grid sm:grid-cols-2 gap-3">
                     <?php foreach ($tournaments as $t): ?>
-                        <?php $accent = Avatar::color($t['game_name']); ?>
                         <a href="<?= BASE_PATH ?>/tournaments/<?= $t['id'] ?>"
                            class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200">
                             <div class="card-body p-4 flex-row items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-white"
-                                     style="background-color: <?= $accent ?>">
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
                                     <i class="ti ti-trophy text-xl"></i>
                                 </div>
                                 <div class="min-w-0 mr-auto">
@@ -285,8 +282,7 @@ foreach ($active as $cs) {
                            + (isToday ? ' ring-1 ring-primary' : '');
             const num = document.createElement('span'); num.textContent = day; cell.appendChild(num);
             const dot = document.createElement('span');
-            dot.className = 'w-1.5 h-1.5 rounded-full mt-0.5';
-            dot.style.backgroundColor = items[0].color;
+            dot.className = 'w-1.5 h-1.5 rounded-full mt-0.5 bg-primary';
             cell.appendChild(dot);
 
             const pop = document.createElement('div');
@@ -296,7 +292,7 @@ foreach ($active as $cs) {
                 a.href = base + '/sessions/' + s.id;
                 a.className = 'flex items-center gap-2 p-2 rounded hover:bg-base-200';
                 const d2 = document.createElement('span');
-                d2.className = 'w-2.5 h-2.5 rounded-full shrink-0'; d2.style.backgroundColor = s.color;
+                d2.className = 'w-2.5 h-2.5 rounded-full shrink-0 bg-primary';
                 const info = document.createElement('span'); info.className = 'min-w-0';
                 const t = document.createElement('span'); t.className = 'block text-xs font-medium truncate'; t.textContent = s.title;
                 const tm = document.createElement('span'); tm.className = 'block text-[11px] opacity-60'; tm.textContent = s.time;

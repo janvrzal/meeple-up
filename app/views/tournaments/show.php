@@ -8,7 +8,6 @@ $isMember    = $isMember ?? false;
 $memberCount = $memberCount ?? 0;
 $isCreator = Auth::check() && (int) $t['creator_id'] === Auth::id();
 $isAdmin   = Auth::check() && (Auth::user()['role'] ?? 'user') === 'admin';
-$accent    = Avatar::color($t['game_name']);
 ?>
 
 <?php $fallback = BASE_PATH . '/tournaments'; $label = 'Back'; require __DIR__ . '/../partials/back-link.php'; ?>
@@ -16,8 +15,7 @@ $accent    = Avatar::color($t['game_name']);
 <div class="card bg-base-100 shadow-lg mb-6">
     <div class="card-body p-6">
         <div class="flex items-start gap-4">
-            <div class="w-14 h-14 rounded-lg flex items-center justify-center shrink-0 text-white"
-                 style="background-color: <?= $accent ?>">
+            <div class="w-14 h-14 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
                 <i class="ti ti-trophy text-3xl"></i>
             </div>
             <div class="min-w-0 mr-auto">

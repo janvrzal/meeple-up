@@ -1,7 +1,6 @@
 <?php
 /** @var array  $s         Session row (joined data) */
 /** @var string $cardBadge Optional HTML for the top-right badge */
-$accent    = Avatar::color($s['game_name'] ?? $s['title']);
 $isCancelled = ($s['status'] ?? 'open') === 'cancelled';
 ?>
 <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>"
@@ -9,9 +8,8 @@ $isCancelled = ($s['status'] ?? 'open') === 'cancelled';
 
     <div class="card-body p-4 flex-row items-start gap-3 <?= $isCancelled ? 'grayscale opacity-50' : '' ?>">
 
-        <?php /* game token — barevná identita hry (ne stav) */ ?>
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-white"
-             style="background-color: <?= $accent ?>">
+        <?php /* game token — jednotná brand barva */ ?>
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
             <i class="ti ti-dice text-xl"></i>
         </div>
 

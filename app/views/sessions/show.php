@@ -20,9 +20,6 @@ $canViewMessages = $isCreator || $isAdmin
 
 $currentUsername = Auth::check() ? Auth::user()['username'] : null;
 $isFull = $s['max_players'] !== null && (int) $s['player_count'] >= (int) $s['max_players'];
-
-// Accent color derived from the game (or title if no game).
-$accent = Avatar::color($s['game_name'] ?? $s['title']);
 ?>
 
 <?php $fallback = BASE_PATH . '/sessions'; $label = 'Back'; require __DIR__ . '/../partials/back-link.php'; ?>
@@ -46,8 +43,7 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
                     <?php endif; ?>
                 </h1>
                 <div class="flex items-center gap-2 mt-2 text-lg font-medium">
-                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white"
-                          style="background-color: <?= $accent ?>">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-primary text-primary-content">
                         <i class="ti ti-dice text-base"></i>
                     </span>
                     <?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?>
