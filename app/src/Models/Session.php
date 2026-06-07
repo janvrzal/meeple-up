@@ -12,19 +12,21 @@ class Session extends Model
             FROM sessions s
             JOIN locations l ON l.id = s.location_id
             LEFT JOIN games g ON g.id = s.game_id
-            JOIN users u ON u.id = s.creator_id';
+            JOIN users u ON u.id = s.creator_id
+            LEFT JOIN tournaments tr ON tr.id = s.tournament_id';
     }
 
     public function create(array $data): int {
         $sql = 'INSERT INTO sessions
-                (creator_id, location_id, game_id, title, scheduled_at, max_players, is_private, description)
+                (creator_id, location_id, game_id, tournament_id, title, scheduled_at, max_players, is_private, description)
                 VALUES
-                (:creator_id, :location_id, :game_id, :title, :scheduled_at, :max_players, :is_private, :description)';
+                (:creator_id, :location_id, :game_id, :tournament_id, :title, :scheduled_at, :max_players, :is_private, :description)';
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'creator_id' => $data['creator_id'],
             'location_id' => $data['location_id'],
             'game_id'      => $data['game_id'] ?: null,
+            'tournament_id' => $data['tournament_id'] ?? null,
             'title' => $data['title'],
             'scheduled_at' => $data['scheduled_at'],
             'max_players' => $data['max_players'],
@@ -53,8 +55,7 @@ class Session extends Model
 
     public function filtered(array $f): array
     {
-        $sql = $this->baseSelect() . ' WHERE s.scheduled_at >= NOW() AND s.status = \'open\'';
-
+        $sql = $this->baseSelect() . ' WHERE s.scheduled_at >= NOW() AND s.status = \'open\' AND s.tournament_id IS NULL';
         $params = [];
 
         // filtr: lokace
@@ -83,6 +84,14 @@ class Session extends Model
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    public function forTournament(int $tournamentId): array
+    {
+        $sql = $this->baseSelect() . ' WHERE s.tournament_id = :tid ORDER BY s.scheduled_at ASC';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['tid' => $tournamentId]);
         return $stmt->fetchAll();
     }
 

@@ -2,12 +2,12 @@
 /** @var array  $s         Session row (joined data) */
 /** @var string $cardBadge Optional HTML for the top-right badge */
 $accent    = Avatar::color($s['game_name'] ?? $s['title']);
-$cancelled = ($s['status'] ?? 'open') === 'cancelled';
+$isCancelled = ($s['status'] ?? 'open') === 'cancelled';
 ?>
 <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>"
    class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200 relative overflow-hidden">
 
-    <div class="card-body p-4 flex-row items-start gap-3 <?= $cancelled ? 'grayscale opacity-50' : '' ?>">
+    <div class="card-body p-4 flex-row items-start gap-3 <?= $isCancelled ? 'grayscale opacity-50' : '' ?>">
 
         <?php /* game token — barevná identita hry (ne stav) */ ?>
         <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-white"
@@ -21,6 +21,9 @@ $cancelled = ($s['status'] ?? 'open') === 'cancelled';
                 <?= $cardBadge ?? '' ?>
             </div>
             <div class="text-sm opacity-80 truncate"><?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?></div>
+            <?php if (!empty($s['tournament_name'])): ?>
+                <span class="badge badge-sm badge-outline gap-1 w-fit"><i class="ti ti-trophy"></i> <?= htmlspecialchars($s['tournament_name']) ?></span>
+            <?php endif; ?>
             <div class="flex flex-col gap-1 text-sm">
                 <span class="flex items-center gap-1"><i class="ti ti-map-pin opacity-60"></i>
                     <?= htmlspecialchars($s['location_name'] . ', ' . $s['location_city']) ?></span>
@@ -30,7 +33,7 @@ $cancelled = ($s['status'] ?? 'open') === 'cancelled';
         </div>
     </div>
 
-    <?php if ($cancelled): ?>
+    <?php if ($isCancelled): ?>
         <div class="absolute inset-0 flex items-center justify-center bg-base-300/40">
             <span class="badge badge-error badge-lg gap-1 shadow"><i class="ti ti-ban"></i> Cancelled</span>
         </div>

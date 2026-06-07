@@ -20,6 +20,7 @@ class DashboardService
                 'hosted' => $this->sessions->countHostedBy($userId),
                 'joined' => $this->participations->countApprovedFor($userId),
             ],
+            'tournaments' => (new Tournament())->forUser($userId),
         ];
     }
 }

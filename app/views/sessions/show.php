@@ -25,9 +25,7 @@ $isFull = $s['max_players'] !== null && (int) $s['player_count'] >= (int) $s['ma
 $accent = Avatar::color($s['game_name'] ?? $s['title']);
 ?>
 
-<a href="<?= BASE_PATH ?>/sessions" class="btn btn-ghost btn-sm gap-1 mb-3">
-    <i class="ti ti-arrow-left"></i> Back to sessions
-</a>
+<?php $fallback = BASE_PATH . '/sessions'; $label = 'Back'; require __DIR__ . '/../partials/back-link.php'; ?>
 
 <div class="max-w-2xl mx-auto card bg-base-100 shadow-lg">
 
@@ -53,6 +51,7 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
                         <i class="ti ti-dice text-base"></i>
                     </span>
                     <?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?>
+
                     <?php if (Auth::check() && $s['game_id']):
                         $isFav = (new Favorite())->isFavorite(Auth::id(), (int) $s['game_id']); ?>
                         <form method="POST" action="<?= BASE_PATH ?>/games/<?= (int) $s['game_id'] ?>/favorite">
@@ -71,6 +70,13 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
                         </form>
                     <?php endif; ?>
                 </div>
+
+                <?php if (!empty($s['tournament_name'])): ?>
+                    <a href="<?= BASE_PATH ?>/tournaments/<?= (int) $s['tournament_id'] ?>"
+                       class="badge badge-outline gap-1 mt-2 hover:badge-primary">
+                        <i class="ti ti-trophy"></i> <?= htmlspecialchars($s['tournament_name']) ?>
+                    </a>
+                <?php endif; ?>
             </div>
 
             <?php /* ----- primary status / join-leave action (top-right) ----- */ ?>

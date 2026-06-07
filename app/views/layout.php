@@ -53,8 +53,9 @@
                     <ul tabindex="0" class="dropdown-content menu bg-base-100 shadow-lg rounded-box z-30 w-56 mt-2 p-2">
                         <li class="menu-title px-3 pt-1 text-xs opacity-60"><?= htmlspecialchars(Auth::user()['username']) ?></li>
                         <li><a href="<?= BASE_PATH ?>/"><i class="ti ti-layout-dashboard"></i> Dashboard</a></li>
-                        <li><a href="<?= BASE_PATH ?>/sessions"><i class="ti ti-calendar-event"></i> Browse sessions</a></li>
                         <li class="sm:hidden"><a href="<?= BASE_PATH ?>/sessions/create"><i class="ti ti-plus"></i> Create session</a></li>
+                        <li><a href="<?= BASE_PATH ?>/sessions"><i class="ti ti-calendar-event"></i> Browse sessions</a></li>
+                        <li><a href="<?= BASE_PATH ?>/tournaments"><i class="ti ti-trophy"></i> Tournaments</a></li>
                         <li><a href="<?= BASE_PATH ?>/games"><i class="ti ti-cards"></i> Favorite Games</a></li>
                         <li><hr class="border-base-200 my-1"></li>
                         <li><a href="<?= BASE_PATH ?>/account"><i class="ti ti-user-cog"></i> Account</a></li>

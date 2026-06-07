@@ -35,7 +35,7 @@ class CommentController extends Controller
 
         $model = new Comment();
         $comment = $model->findById((int) $id);
-        if ($comment === null) { $this->abort(404, 'Session not found'); }
+        if ($comment === null) { $this->abort(404, 'Comment not found'); }
 
         $this->requireOwner((int) $comment['user_id']);
 

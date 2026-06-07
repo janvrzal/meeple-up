@@ -1,43 +1,48 @@
-# Architektura
+# Application Architecture
 
-Aplikace je postavená na vlastní **MVC** architektuře v čistém PHP, bez frameworku.
-Veškerý provoz prochází jediným vstupním bodem (front controller), který request
-předá routeru a ten příslušnému controlleru.
+The application is built using a custom, lightweight **MVC (Model-View-Controller)** architecture implemented in clean PHP 8.3 without external framework dependencies. This document outlines the request lifecycle, the system's class architecture, and the design decisions.
 
-## Tok requestu
+---
+
+## 1. Request Lifecycle
+
+The application routes all web requests through a single entry point (the Front Controller pattern) to ensure central control over sessions, configuration, and security checks.
 
 ```mermaid
 flowchart LR
-    B[Prohlížeč] -->|HTTP request| FC[public/index.php<br/>front controller]
-    FC --> R[Router<br/>regex match cesty]
-    R --> C[Controller<br/>HTTP akce]
-    C --> M[Model / Service<br/>data + logika]
-    M --> DB[(MySQL)]
-    C --> V[View<br/>PHP šablona]
-    V -->|HTML| B
+    Browser[Web Browser] -->|HTTP Request| FC[index.php<br/>Front Controller]
+    FC --> Router[Router<br/>Regex Path Matching]
+    Router --> Controller[Controller<br/>HTTP Request Handler]
+    Controller --> ModelService[Model / Service<br/>Data & Logic]
+    ModelService --> DB[(MySQL Database)]
+    Controller --> View[View<br/>PHP Layout Template]
+    View -->|HTML Output| Browser
 ```
 
-1. **`public/index.php`** zaregistruje autoloader, načte config, nastartuje session,
-   definuje routy a zavolá `Router::dispatch()`.
-2. **`Router`** porovná cestu (podpora parametrů typu `/sessions/{id}` přes regex)
-   a zavolá odpovídající metodu controlleru.
-3. **Controller** ověří oprávnění (`requireLogin`…), zpracuje vstup, zavolá model/service
-   a vykreslí view (`render`), nebo přesměruje (`redirect`).
-4. **Model** komunikuje s DB přes PDO (prepared statements), **Service** drží logiku
-   napříč více modely.
-5. **View** je PHP šablona vykreslená do společného `layout.php`.
+### Execution Steps
+1. **Bootstrapping:** The web server directs all requests to `index.php` via rewrite rules (defined in `.htaccess`). The front controller registers the class autoloader, initializes server-side sessions, parses configuration files from `.env`, determines error reporting settings based on environment (local vs production), initializes the database connection singleton, and loads the routing definitions.
+2. **Routing:** The `Router` inspects the request URI and HTTP method. It converts parameters (like `/sessions/{id}`) into regular expressions, matches the path, and invokes the configured controller class and action method.
+3. **Controller Execution:** The instantiated controller verifies authorization rules (e.g., checks if user authentication is required). It processes input arguments, interacts with data models or orchestrating services, and initiates view rendering or page redirection.
+4. **Data Management:** Models execute parameterized SQL queries against MySQL using PDO. Services orchestrate operations that span multiple models (e.g., compiling data metrics for the dashboard or communicating with BGG).
+5. **Presentation:** The base controller utilizes output buffering to capture the output of the requested view template and injects it into a common `layout.php` master template to compose the final HTML response.
 
-## Vrstvy a zodpovědnosti
+---
 
-| Vrstva         | Složka                | Zodpovědnost                                              |
-|----------------|-----------------------|----------------------------------------------------------|
-| **Core**       | `app/src/Core`        | Infrastruktura: router, DB, base třídy, auth, CSRF.       |
-| **Controller** | `app/src/Controllers` | HTTP tok — jeden controller na zdroj. Tenké, delegují.    |
-| **Model**      | `app/src/Models`      | Data jedné entity (jedna tabulka). Pouze SQL přes PDO.    |
-| **Service**    | `app/src/Services`    | Orchestrace a business logika napříč modely / externí API.|
-| **View**       | `app/views`           | Prezentace (PHP šablony + Tailwind/DaisyUI).              |
+## 2. Architectural Layers
 
-## Class diagram
+| Layer | Directory | Responsibility |
+|---|---|---|
+| **Core** | `app/src/Core/` | Infrastructure code: routing, database connections, base classes, authentication wrappers, CSRF protection, and avatar helpers. |
+| **Controller** | `app/src/Controllers/` | HTTP entry points. Responsible for request parameter validation, authorization checks, orchestrating models/services, and selecting views. |
+| **Model** | `app/src/Models/` | Data mapping layer. Encapsulates SQL queries and data structure mappings for a single database table. |
+| **Service** | `app/src/Services/` | Business logic layer. Used when logic spans across multiple models or handles external interfaces (such as BGG). |
+| **View** | `app/views/` | HTML templates integrated with CSS stylesheets (Tailwind CSS and DaisyUI components). |
+
+---
+
+## 3. Class Diagram
+
+The following diagram illustrates the relationship between the base classes, the models, controllers, and services in the system.
 
 ```mermaid
 classDiagram
@@ -46,6 +51,7 @@ classDiagram
         #render(view, data)
         #redirect(path)
         #requireLogin()
+        #requireGuest()
         #requireOwner(ownerId)
         #requireAdmin()
         #abort(code, message)
@@ -70,6 +76,11 @@ classDiagram
         +id() int$
         +user() array$
     }
+    class Csrf {
+        +token() string$
+        +field() string$
+        +check(token) bool$
+    }
 
     Controller <|-- HomeController
     Controller <|-- AuthController
@@ -77,6 +88,9 @@ classDiagram
     Controller <|-- ParticipationController
     Controller <|-- CommentController
     Controller <|-- GameController
+    Controller <|-- AccountController
+    Controller <|-- FavoriteController
+    Controller <|-- TournamentController
 
     Model <|-- User
     Model <|-- Session
@@ -84,6 +98,9 @@ classDiagram
     Model <|-- Game
     Model <|-- Participation
     Model <|-- Comment
+    Model <|-- Favorite
+    Model <|-- Tournament
+    Model <|-- TournamentParticipation
 
     class GameSource {
         <<interface>>
@@ -92,10 +109,12 @@ classDiagram
     }
     GameSource <|.. CatalogSource
     GameSource <|.. BggApiSource
-    GameService --> GameSource : používá vybraný zdroj
-    GameService --> Game : cache
+    GameService --> GameSource : uses
+    GameService --> Game : caches
+
     DashboardService --> Session
     DashboardService --> Participation
+    DashboardService --> Tournament
 
     SessionController --> Session
     SessionController --> GameService
@@ -103,65 +122,76 @@ classDiagram
     CommentController --> Comment
     GameController --> GameService
     HomeController --> DashboardService
+    FavoriteController --> Favorite
+    AccountController --> User
+    TournamentController --> Tournament
+    TournamentController --> TournamentParticipation
 ```
 
-### Použité návrhové vzory
-- **Front controller** — jediný vstupní bod (`index.php`).
-- **Singleton** — `Database` drží jediné PDO připojení.
-- **Strategy** — `GameSource` se dvěma zaměnitelnými implementacemi (viz níže).
-- **Template method / dědičnost** — base `Controller` a `Model` sdílejí společné chování.
+---
 
-## BGG pipeline
+## 4. Implemented Design Patterns and Alternatives
 
-Aplikace pracuje se hrami přes rozhraní **`GameSource`**, které má dvě implementace.
-Konkrétní zdroj se vybírá podle `.env` proměnné `BGG_SOURCE` — zbytek aplikace
-o rozdílu neví.
+### Front Controller Pattern
+* **Design Decision:** The system routes all incoming HTTP traffic through a single entry point (`index.php`).
+* **Rationale:** A single entry point allows for consistent preprocessing of requests. Global operations, such as starting a session, parsing configurations, loading environment variables, and handling uncaught exceptions, are declared in one file.
+* **Alternative Considered:** Multi-script routing (creating individual files like `login.php`, `create_session.php`, `delete_comment.php` in the public directory). This was rejected because it introduces significant code duplication, makes refactoring global configuration difficult, and exposes the system to directory traversal vulnerabilities.
 
-```mermaid
-flowchart TD
-    UI[Formulář sezení<br/>našeptávač] --> GS[GameService]
-    GS -->|BGG_SOURCE| SW{který zdroj?}
-    SW -->|catalog| CAT[CatalogSource<br/>lokální tabulka bgg_catalog]
-    SW -->|api| API[BggApiSource<br/>BGG XML API2 + token]
+### Singleton Pattern
+* **Design Decision:** The database connection wrapper `Database` restricts instantiation to a single static connection instance.
+* **Rationale:** Establishing a MySQL connection is computationally expensive. Using a singleton pattern ensures that exactly one database connection is opened per request lifecycle, reducing database server workload and latency.
+* **Alternative Considered:** Dependency Injection of a connection pool or creating a connection inside each model constructor. A pool was rejected because standard PHP has a short request lifespan where persistent pool management is complex. Creating a connection per model was rejected because instantiating multiple models on a page would open dozens of redundant TCP connections to MySQL.
 
-    GS -->|resolve bgg_id| CACHE{hra v games?}
-    CACHE -->|ano| HIT[cache HIT<br/>vrať games.id]
-    CACHE -->|ne| MISS[cache MISS<br/>fetch ze zdroje → ulož do games]
-```
+### Strategy Pattern
+* **Design Decision:** The system abstracts BoardGameGeek queries through the `GameSource` interface, implementing `CatalogSource` (local db) and `BggApiSource` (remote BGG API) strategies.
+* **Rationale:** This enables switching between local prefix-search indexing (which operates without API tokens and does not require an active internet connection) and live BGG XML queries. Switching requires changing a single key in the `.env` configuration file, and the rest of the application remains unaware of the change.
+* **Alternative Considered:** Direct hardcoded API calls inside model code. This was rejected because it binds the application tightly to the external BGG API, making offline development impossible and causing API key rate-limiting to break the entire application.
 
-- **Vyhledávání** (`search`) běží proti vybranému zdroji — u `catalog` je to lokální
-  SQL dotaz nad ~30 000 hrami (bez tokenu, okamžité), u `api` živé volání BGG.
-- **Cache** (`GameService::resolve`) je společná: hra se do tabulky `games` uloží
-  **jen při prvním použití**; další sezení s toutéž hrou čtou z cache.
-- **Přepnutí zdroje** = změna jediné hodnoty v `.env` (`BGG_SOURCE=catalog|api`).
-  Důvodem dvou pipeline je, že BGG od 2025 vyžaduje registrovaný token se
-  schvalováním v řádu týdnů — `catalog` zajišťuje plnou funkčnost i bez něj.
+### Template Method / Class Inheritance
+* **Design Decision:** Base classes `Controller` and `Model` define common execution flows and shared helper utilities.
+* **Rationale:** It allows child controllers to inherit session authorization tools (`requireLogin`, `requireOwner`) and view render capabilities without code replication. Child models automatically share the same PDO instance initialized by the system database bootstrap.
+* **Alternative Considered:** Composition-based controller traits or helper functions. While composition is highly flexible, simple inheritance is cleaner and easier to read for lightweight projects.
 
-### Import katalogu
-Tabulka `bgg_catalog` se plní z oficiálního BGG data dumpu (`bg_ranks.csv`)
-jednorázovým skriptem, který filtruje jen hodnocené hry (`rank > 0`) a vkládá je
-dávkově v transakci.
+---
 
-## Přehled rout
+## 5. Unified Routing Table
 
-| Metoda | Cesta                       | Controller             | Akce          |
-|--------|-----------------------------|------------------------|---------------|
-| GET    | `/`                         | HomeController         | index (dashboard / landing) |
-| GET/POST | `/register`               | AuthController         | registrace    |
-| GET/POST | `/login`                  | AuthController         | přihlášení    |
-| GET    | `/logout`                   | AuthController         | odhlášení     |
-| GET    | `/sessions`                 | SessionController      | přehled + filtry |
-| GET    | `/sessions/create`          | SessionController      | formulář      |
-| POST   | `/sessions`                 | SessionController      | uložení       |
-| GET    | `/sessions/{id}`            | SessionController      | detail        |
-| GET    | `/sessions/{id}/edit`       | SessionController      | úprava        |
-| POST   | `/sessions/{id}/update`     | SessionController      | uložení úpravy |
-| POST   | `/sessions/{id}/delete`     | SessionController      | smazání       |
-| GET    | `/sessions/{id}/calendar`   | SessionController      | export `.ics` |
-| POST   | `/sessions/{id}/join`       | ParticipationController| přihlášení na sezení |
-| POST   | `/sessions/{id}/leave`      | ParticipationController| odhlášení     |
-| POST   | `/sessions/{id}/approve`    | ParticipationController| schválení žádosti |
-| POST   | `/sessions/{id}/reject`     | ParticipationController| zamítnutí     |
-| POST   | `/sessions/{id}/comments`   | CommentController      | přidání zprávy |
-| POST   | `/comments/{id}/delete`     | CommentController      | smazání zprávy |
-| GET    | `/games/search`             | GameController         | JSON našeptávač her |
+Below is the complete list of HTTP routes mapping client paths to controller actions:
+
+| HTTP Method | Route URI Path | Controller | Controller Action | Purpose |
+|---|---|---|---|---|
+| **GET** | `/` | `HomeController` | `index` | Displays user dashboard if logged in, or the application landing page. |
+| **GET** | `/register` | `AuthController` | `showRegister` | Displays the new account registration form. |
+| **POST** | `/register` | `AuthController` | `register` | Processes registration form submission. |
+| **GET** | `/login` | `AuthController` | `showLogin` | Displays the user login credentials form. |
+| **POST** | `/login` | `AuthController` | `login` | Validates credentials and logs the user in. |
+| **GET** | `/logout` | `AuthController` | `logout` | Clears sessions and logs out the current user. |
+| **GET** | `/sessions` | `SessionController` | `index` | Lists and filters active gaming sessions (by game, location, vacancies). |
+| **GET** | `/sessions/create` | `SessionController` | `create` | Displays form to schedule a new board game session. |
+| **POST** | `/sessions` | `SessionController` | `store` | Validates and saves a new session in the database. |
+| **GET** | `/sessions/{id}` | `SessionController` | `show` | Displays details, participants, and comments for a session. |
+| **GET** | `/sessions/{id}/edit` | `SessionController` | `edit` | Displays the editing form for a session (restricted to owner). |
+| **POST** | `/sessions/{id}/update` | `SessionController` | `update` | Saves modifications made to a session (restricted to owner). |
+| **POST** | `/sessions/{id}/delete` | `SessionController` | `destroy` | Deletes a session and associated records (restricted to owner). |
+| **POST** | `/sessions/{id}/cancel` | `SessionController` | `cancel` | Sets session status to cancelled (restricted to owner). |
+| **POST** | `/sessions/{id}/reopen` | `SessionController` | `reopen` | Sets session status back to open (restricted to owner). |
+| **GET** | `/sessions/{id}/calendar` | `SessionController` | `calendar` | Generates and downloads an iCalendar (.ics) file for the session. |
+| **POST** | `/sessions/{id}/join` | `ParticipationController` | `join` | Requests to join a session (registers as pending or approved). |
+| **POST** | `/sessions/{id}/leave` | `ParticipationController` | `leave` | Removes the authenticated user from a session's participants. |
+| **POST** | `/sessions/{id}/approve` | `ParticipationController` | `approve` | Approves a pending participant's request (restricted to creator). |
+| **POST** | `/sessions/{id}/reject` | `ParticipationController` | `reject` | Rejects/removes a participant from a session (restricted to creator). |
+| **POST** | `/sessions/{id}/comments` | `CommentController` | `store` | Saves a new discussion comment under a session. |
+| **POST** | `/comments/{id}/delete` | `CommentController` | `destroy` | Deletes a comment (restricted to comment author or administrator). |
+| **GET** | `/games` | `FavoriteController` | `index` | Displays the user's personal board game collection favorites. |
+| **POST** | `/games/{id}/favorite` | `FavoriteController` | `toggle` | Toggles whether a game is marked as a user favorite. |
+| **GET** | `/games/search` | `GameController` | `search` | JSON endpoint returning board game matches for autocompleters. |
+| **GET** | `/account` | `AccountController` | `index` | Displays user profile and security update options. |
+| **POST** | `/account/profile` | `AccountController` | `updateProfile` | Updates the profile details (such as hometown city). |
+| **POST** | `/account/password` | `AccountController` | `updatePassword` | Validates old password and updates user password hash with pepper. |
+| **GET** | `/tournaments` | `TournamentController` | `index` | Lists all active tournaments. |
+| **GET** | `/tournaments/create` | `TournamentController` | `create` | Displays form to create a new board game tournament. |
+| **POST** | `/tournaments` | `TournamentController` | `store` | Validates and stores a new tournament in the database. |
+| **GET** | `/tournaments/{id}` | `TournamentController` | `show` | Displays tournament details, schedules, and members. |
+| **POST** | `/tournaments/{id}/delete` | `TournamentController` | `destroy` | Deletes a tournament (restricted to tournament creator). |
+| **POST** | `/tournaments/{id}/join` | `TournamentController` | `join` | Joins a tournament as a participant. |
+| **POST** | `/tournaments/{id}/leave` | `TournamentController` | `leave` | Unregisters a participant from a tournament. |

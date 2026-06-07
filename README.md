@@ -1,139 +1,134 @@
-# 🎲 Roll Call
+# Roll Call - Board Game Session Organizer
 
-**Roll Call** je webová aplikace pro organizování a domlouvání sezení deskových her.
-Uživatelé mohou vytvářet herní sezení, zvát ostatní hráče a přihlašovat se na sezení
-ostatních — ať už v rámci uzavřené skupiny přátel, nebo širší komunity hráčů hledajících
-spoluhráče.
+Roll Call (also referred to as Meeple Up) is a web application designed for organizing and coordinating board game sessions. Users can schedule game sessions, invite friends, sign up for sessions, coordinate tournaments, and manage a collection of their favorite games. The application is suited for closed groups of friends as well as broader gaming communities looking for new players.
 
-> Semestrální projekt (VŠE). Postaveno v čistém PHP bez frameworku.
+This project was built from scratch in vanilla PHP without external frameworks as part of a university semester project (VŠE).
 
 ---
 
-## ✨ Funkce
+## 1. Features
 
-- **Účty** — registrace, přihlášení, odhlášení; hesla hashovaná (`password_hash` + salt + pepper).
-- **Herní sezení** — vytvoření / úprava / mazání (datum, čas, místo, max. počet hráčů, hra, popis).
-- **Přihlašování na sezení** — join / leave, počítání volných míst.
-- **Soukromá sezení** — approval systém: tvůrce schvaluje žádosti o účast.
-- **Komentáře** — chat-style diskuze pod sezením, viditelná jen pro účastníky.
-- **Katalog her (BGG)** — našeptávač her z [BoardGameGeek](https://boardgamegeek.com),
-  data se cachují lokálně do DB.
-- **Přehled sezení** — filtrování podle hry, lokace a volných míst.
-- **Dashboard** — moje sezení, žádosti ke schválení, statistiky.
-- **Export do kalendáře** — stažení `.ics` i přímý odkaz do Google Calendar.
-- **Vzhled** — světlý/tmavý režim, responzivní UI.
-
----
-
-## 🛠️ Technologie
-
-| Vrstva        | Technologie                                  |
-|---------------|----------------------------------------------|
-| Backend       | PHP 8.3 (čisté, bez frameworku), PDO         |
-| Databáze      | MySQL / MariaDB                              |
-| Frontend      | Tailwind CSS + DaisyUI, Tabler Icons         |
-| Externí data  | BGG XML API2 + oficiální data dump (katalog) |
-| Architektura  | MVC, vlastní router (front controller)       |
+* **Account Management:** User registration and secure authentication. Password hashes are protected using bcrypt combined with an application-level secret pepper.
+* **Game Session Coordination:** CRUD (Create, Read, Update, Delete) operations for gaming sessions including scheduling details, max player counts, locations, and descriptions.
+* **Access Control and Approvals:** Sessions can be public (anyone can join instantly) or private (requiring the creator's approval to join).
+* **Discussion Comments:** Section-restricted discussion boards under each session, visible only to approved participants.
+* **BoardGameGeek Integration:** Game auto-completion utilizing BoardGameGeek (BGG) metadata. Uses a dual-pipeline strategy (local catalog database file vs live BGG API) and caches retrieved games.
+* **Tournaments:** Users can organize competitive board game tournaments, grouping multiple game sessions together, and users can register as tournament participants.
+* **Favorites System:** Users can add board games to their favorite games collection to quickly select them when creating new sessions.
+* **Calendar Export:** Downloadable iCalendar (.ics) files and direct Google Calendar creation links for scheduled sessions.
+* **User Profiles:** Personalized settings allowing users to update their home city and securely change their passwords.
+* **Responsive Styling:** Clean light and dark themes utilizing Tailwind CSS and DaisyUI components.
 
 ---
 
-## 🚀 Instalace a spuštění
+## 2. Technology Stack
 
-### Požadavky
-- PHP 8.3+ (rozšíření: `pdo_mysql`, `simplexml`, `mbstring`)
-- MySQL / MariaDB
-- Webový server (Apache s `mod_rewrite`)
+| Layer | Technology |
+|---|---|
+| **Backend** | PHP 8.3 (Vanilla, zero external framework dependencies), PDO |
+| **Database** | MySQL / MariaDB (InnoDB storage engine, UTF-8 charset) |
+| **Frontend** | Tailwind CSS, DaisyUI component library, Tabler Icons, Vanilla JavaScript |
+| **Integrations** | BoardGameGeek XML API2, iCalendar (.ics) RFC 5545 |
+| **Architecture** | Custom MVC architecture with a Front Controller and regex routing |
 
-### Kroky
+---
 
-1. **Naklonuj repozitář** a nasměruj web root serveru do složky `public/`
-   (vše ostatní — `app/`, `.env` — musí zůstat mimo veřejný dosah).
+## 3. Directory Structure
 
-2. **Vytvoř `.env`** zkopírováním šablony a vyplň údaje:
+```
+.
+├── app/                        # Main application files (protected from web access)
+│   ├── config/                 # Configuration files (config.php which parses .env)
+│   ├── sql/                    # SQL schema setup script (schema.sql)
+│   ├── src/                    # Source classes mapped to PHP autoloading
+│   │   ├── Core/               # Infrastructure: Router, Database, Auth, Csrf, Controllers, Models
+│   │   ├── Controllers/        # Thin HTTP controllers handling requests
+│   │   ├── Models/             # Database table access models
+│   │   └── Services/           # Services orchestrating logic across multiple models
+│   └── views/                  # PHP templates and HTML views
+├── assets/                     # Publicly accessible static assets
+├── docs/                       # Technical documentation
+│   ├── architecture.md         # Request lifecycles, class design, and routing tables
+│   ├── database.md             # ER diagrams, table schemas, and normalization rules
+│   ├── security.md             # Password hashing, CSRF tokens, XSS, and SQLi defenses
+│   └── bgg_integration.md      # Strategy patterns, local catalog, and API caching details
+├── .env.example                # Example configuration values template
+├── .htaccess                   # Rewrite engine configuration for Apache URL routing
+├── clear.php                   # Diagnostic script to clear PHP OPcache
+├── diag.php                    # Diagnostic inspection script
+├── import_catalog.php          # Command line / web script to import BGG CSV catalog
+└── index.php                   # Front controller (web application entry point)
+```
+
+---
+
+## 4. Installation and Setup
+
+### Prerequisites
+* PHP 8.3 or higher with extensions: `pdo_mysql`, `simplexml`, `mbstring`.
+* MySQL or MariaDB database server.
+* Web server (Apache with `mod_rewrite` enabled).
+
+### Setup Steps
+
+1. **Clone the Repository:**
+   Place the project files in your web server's directory.
+
+2. **Configure Environment Variables:**
+   Create a `.env` file by copying the template file:
    ```bash
    cp .env.example .env
    ```
+   Edit the `.env` file and fill in your environment variables:
    ```ini
    DB_HOST=localhost
    DB_NAME=rollcall
-   DB_USER=...
-   DB_PASS=...
+   DB_USER=your_db_username
+   DB_PASS=your_db_password
    DB_CHARSET=utf8mb4
-   APP_ENV=local            # 'local' zobrazuje chyby, 'production' je skrývá
-   PEPPER=...               # náhodný řetězec, viz níže
-   BGG_SOURCE=catalog       # 'catalog' (lokální) nebo 'api' (živé BGG, vyžaduje token)
-   BGG_TOKEN=               # Bearer token z boardgamegeek.com/applications
+   APP_ENV=local            # Use 'local' to display errors; 'production' to hide them
+   PEPPER=your_secret_hash   # Secure key for password hashing
+   BGG_SOURCE=catalog       # Use 'catalog' for offline SQL search or 'api' for live BGG API
+   BGG_TOKEN=               # BGG API Bearer Token (optional, required if BGG_SOURCE=api)
    ```
-   Vygenerování `PEPPER`:
+   Generate a cryptographically secure `PEPPER` key using PHP:
    ```php
    echo bin2hex(random_bytes(32));
    ```
 
-3. **Vytvoř databázi a naimportuj schéma:**
+3. **Initialize the Database Schema:**
+   Create a new MySQL database:
    ```sql
    CREATE DATABASE rollcall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
-   Naimportuj `app/sql/schema.sql` (např. přes phpMyAdmin nebo `mysql < app/sql/schema.sql`).
+   Import the SQL schema file found at `app/sql/schema.sql`. You can use PHPMyAdmin or the MySQL command-line tool:
+   ```bash
+   mysql -u your_username -p rollcall < app/sql/schema.sql
+   ```
 
-4. **Naplň katalog her** — naimportuj podmnožinu BGG data dumpu (`bg_ranks.csv`)
-   do tabulky `bgg_catalog` (viz [docs/architecture.md](docs/architecture.md#bgg-pipeline)).
+4. **Populate the Board Game Catalog:**
+   Place the BoardGameGeek CSV ranking data dump (`bg_ranks.csv`) in the root directory. Run the import script to populate the local lookup index:
+   ```bash
+   php import_catalog.php
+   ```
 
-5. Hotovo — otevři appku v prohlížeči.
-
----
-
-## 📁 Struktura projektu
-
-```
-.
-├── public/                 # web root (jediná veřejná složka)
-│   ├── index.php           # front controller (vstupní bod)
-│   ├── .htaccess           # rewrite všech requestů do index.php
-│   └── assets/             # statické soubory (maskot…)
-├── app/
-│   ├── config/             # config.php (čte .env)
-│   ├── sql/                # schema.sql
-│   ├── src/
-│   │   ├── Core/           # Router, Database, Controller, Model, Auth, Csrf, Avatar
-│   │   ├── Controllers/    # HTTP akce (jeden controller na zdroj)
-│   │   ├── Models/         # přístup k datům (jeden model na tabulku)
-│   │   └── Services/       # business logika (BGG zdroje, dashboard)
-│   └── views/              # PHP šablony
-├── docs/                   # podrobná dokumentace
-└── .env                    # konfigurace (NENÍ v gitu)
-```
-
-> Poznámka: dle hostingu může být `public/` mapované jinak — klíčové je, že web server
-> míří do složky s `index.php` a `app/` je mimo veřejný dosah.
+5. **Access the Application:**
+   Open the application URL in your web browser.
 
 ---
 
-## 📚 Další dokumentace
+## 5. Architectural Design Decisions
 
-- **[docs/architecture.md](docs/architecture.md)** — MVC tok, class diagram, BGG pipeline, přehled rout.
-- **[docs/database.md](docs/database.md)** — ER diagram a popis tabulek.
-
----
-
-## 🔐 Bezpečnost (shrnutí)
-
-- **Hesla**: `password_hash` (bcrypt) + per-uživatelský salt + aplikační pepper.
-- **CSRF**: token ve všech formulářích, ověřovaný u POST akcí.
-- **XSS**: veškerý uživatelský výstup přes `htmlspecialchars`.
-- **SQL injection**: výhradně prepared statements (PDO).
-- **Autorizace**: `requireLogin` / `requireOwner` / `requireAdmin` na úrovni controllerů.
-- **Konfigurace**: tajemství (`.env`, `PEPPER`, `BGG_TOKEN`) mimo git i mimo web root.
+### Web Root Layout and Directory Structure
+* **Design Decision:** The front controller `index.php` is located directly in the root directory rather than inside a nested `public/` directory. Access to the core source code directory `app/` is blocked by an Apache directive (`Require all denied`) in `app/.htaccess`.
+* **Rationale:** In standard professional environments, the web server's document root points to a nested `public/` directory, completely isolating the source code from web access. However, many shared hosting environments (including student accounts on university servers such as `vse.cz`) map URL paths directly to directories like `public_html/` and do not allow custom document root adjustments. Placing `index.php` at the root and securing the `app/` folder with `app/.htaccess` guarantees security while allowing out-of-the-box deployment on simple shared hosting setups.
 
 ---
 
-## 📝 Poznámka k BGG API
+## 6. Comprehensive Documentation Links
 
-BGG od poloviny 2025 vyžaduje pro XML API registraci aplikace a autorizační token
-(se schvalováním řádově v týdnech). Aplikace je proto navržena se **dvěma zdroji dat
-za společným rozhraním** (`GameSource`):
-
-- **`catalog`** — vyhledávání z lokálně naimportovaného BGG data dumpu (funguje bez tokenu),
-- **`api`** — živé volání BGG XML API2 (po schválení tokenu).
-
-Přepnutí je otázkou jediné hodnoty v `.env` (`BGG_SOURCE`). Detaily v
-[docs/architecture.md](docs/architecture.md#bgg-pipeline).
+For deeper dives into technical segments, refer to:
+* **[Architecture Guide (docs/architecture.md)](docs/architecture.md):** Detailed explanations of the request lifecycle, the custom MVC layers, class hierarchy diagrams, and the full HTTP routing table.
+* **[Database Documentation (docs/database.md)](docs/database.md):** Entity-relationship diagrams, table fields, foreign key mappings, and database normalization choices.
+* **[Security Overview (docs/security.md)](docs/security.md):** Information regarding bcrypt password hashing with server-side pepper, session fixation prevention, CSRF tokens, XSS output sanitization, and SQL injection security.
+* **[BGG Integration (docs/bgg_integration.md)](docs/bgg_integration.md):** Strategy patterns for game catalog querying, caching schemas, and API authentication rules.

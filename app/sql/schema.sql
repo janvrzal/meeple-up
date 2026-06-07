@@ -1,5 +1,5 @@
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS session_ratings, user_favorite_games, comments,
+DROP TABLE IF EXISTS user_favorite_games, comments,
     participations, sessions, tournaments, games, locations, users;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -20,7 +20,10 @@ CREATE TABLE locations (
                            name       VARCHAR(120) NOT NULL,
                            address    VARCHAR(255) NULL,
                            city       VARCHAR(100) NOT NULL,
-                           created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+                           created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           place_id   VARCHAR(255) NULL,
+                           lat        DECIMAL(10,7) NULL,
+                           lng        DECIMAL(10,7) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE games (
@@ -60,9 +63,6 @@ CREATE TABLE sessions (
                           is_private TINYINT(1) NOT NULL DEFAULT 0,
                           description TEXT NULL,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          place_id VARCHAR(255) NULL,
-                          lat DECIMAL(10,7) NULL,
-                          lng DECIMAL(10,7) NULL,
 
                           FOREIGN KEY (creator_id)  REFERENCES users(id)     ON DELETE CASCADE,
                           FOREIGN KEY (game_id)     REFERENCES games(id)     ON DELETE SET NULL,
@@ -107,18 +107,6 @@ CREATE TABLE user_favorite_games (
                                      FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE session_ratings (
-                                 id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                                 session_id INT UNSIGNED NOT NULL,
-                                 user_id    INT UNSIGNED NOT NULL,
-                                 rating     TINYINT UNSIGNED NOT NULL,
-                                 comment    TEXT NULL,
-                                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                 FOREIGN KEY (user_id, session_id)
-                                     REFERENCES participations(user_id, session_id) ON DELETE CASCADE,
-                                 UNIQUE KEY uq_rating (session_id, user_id),
-                                 CHECK (rating BETWEEN 1 AND 5)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE bgg_catalog (
                              bgg_id         INT UNSIGNED PRIMARY KEY,
@@ -127,4 +115,13 @@ CREATE TABLE bgg_catalog (
                              rank           INT UNSIGNED NULL,
                              is_expansion   TINYINT(1) NOT NULL DEFAULT 0,
                              INDEX idx_catalog_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE tournament_participations (
+                                           user_id       INT UNSIGNED NOT NULL,
+                                           tournament_id INT UNSIGNED NOT NULL,
+                                           created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                           PRIMARY KEY (user_id, tournament_id),
+                                           FOREIGN KEY (user_id)       REFERENCES users(id)       ON DELETE CASCADE,
+                                           FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

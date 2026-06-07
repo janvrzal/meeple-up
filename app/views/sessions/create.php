@@ -4,12 +4,16 @@ $favorites = $favorites ?? [];
 $locations = $locations ?? [];
 $errors    = $errors    ?? [];
 $old       = $old       ?? [];
+$tournamentId = $tournamentId ?? null
 ?>
 <div class="max-w-2xl mx-auto card bg-base-100 shadow">
     <div class="card-body">
-    <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">
-        <i class="ti ti-calendar-plus text-primary"></i><?= htmlspecialchars($heading ?? 'Create a session') ?>
-    </h1>
+        <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <i class="ti ti-calendar-plus text-primary"></i><?= htmlspecialchars($heading ?? 'Create a session') ?>
+        </h1>
+        <?php if (!empty($tournamentId)): ?>
+            <div class="alert alert-info text-sm py-2 mb-2"><i class="ti ti-trophy"></i> Adding a session to a tournament.</div>
+        <?php endif; ?>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-error mb-4">
@@ -22,6 +26,10 @@ $old       = $old       ?? [];
     <?php endif; ?>
     <form action="<?= $action ?? (BASE_PATH . '/sessions') ?>" method="POST" class="space-y-3">
         <?= Csrf::field() ?>
+
+        <?php if (!empty($tournamentId)): ?>
+            <input type="hidden" name="tournament_id" value="<?= (int) $tournamentId ?>">
+        <?php endif; ?>
 
 <!--        Název sezení-->
         <div class="form-control">
@@ -121,7 +129,7 @@ $old       = $old       ?? [];
         </script>
 
 <!--        Místo sezení-->
-        <div class="grid sm:grid-cols-2 gap-3">
+        <div class="space-y-2">
             <div id="loc-existing" class="form-control transition">
                 <label class="label" for="location_id"><span class="label-text">Choose a venue</span></label>
                 <select id="location_id" name="location_id" class="select select-bordered w-full">
@@ -136,8 +144,8 @@ $old       = $old       ?? [];
             </div>
 
             <div id="loc-new" class="form-control transition">
-                <label class="label"><span class="label-text">…or add a new one</span></label>
-                <div class="space-y-2">
+                <label class="label py-1"><span class="label-text-alt opacity-60">…or add a new venue</span></label>
+                <div class="grid sm:grid-cols-2 gap-2">
                     <label for="new_location_name" class="sr-only">New venue name</label>
                     <input id="new_location_name" name="new_location_name" type="text" placeholder="Venue name"
                            value="<?= htmlspecialchars($old['new_location_name'] ?? '') ?>"
@@ -209,6 +217,17 @@ $old       = $old       ?? [];
                 <input name="is_private" type="checkbox" class="checkbox"
                     <?= !empty($old['is_private']) ? 'checked' : '' ?> />
                 <span class="label-text">Private session (approval required)</span>
+            </label>
+        </div>
+
+<!--        Přidat hosta jako hráče-->
+        <?php /* na čerstvém formuláři zaškrtnuto; při chybě (title odeslán) respektuj odeslanou hodnotu */ ?>
+        <?php $joinChecked = !isset($old['title']) || !empty($old['join_self']); ?>
+        <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-3">
+                <input name="join_self" type="checkbox" class="checkbox"
+                    <?= $joinChecked ? 'checked' : '' ?> />
+                <span class="label-text">Join this session as a player</span>
             </label>
         </div>
 

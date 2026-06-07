@@ -62,6 +62,15 @@ $router->post('/sessions/{id}/reopen', [SessionController::class, 'reopen']);
 $router->post('/sessions/{id}/update', [SessionController::class, 'update']);
 $router->get('/sessions/{id}/calendar', [SessionController::class, 'calendar']);
 
+// --- tournament routy ---
+$router->get('/tournaments',            [TournamentController::class, 'index']);
+$router->get('/tournaments/create',     [TournamentController::class, 'create']);
+$router->post('/tournaments',           [TournamentController::class, 'store']);
+$router->get('/tournaments/{id}',       [TournamentController::class, 'show']);
+$router->post('/tournaments/{id}/delete', [TournamentController::class, 'destroy']);
+$router->post('/tournaments/{id}/join',  [TournamentController::class, 'join']);
+$router->post('/tournaments/{id}/leave', [TournamentController::class, 'leave']);
+
 // --- participační routy ---
 $router->post('/sessions/{id}/join',  [ParticipationController::class, 'join']);
 $router->post('/sessions/{id}/leave', [ParticipationController::class, 'leave']);

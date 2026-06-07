@@ -26,6 +26,11 @@ class ParticipationController extends Controller
 
         // soukromé → pending (čeká na schválení), veřejné → approved
         $status = $session['is_private'] ? 'pending' : 'approved';
+        if (!empty($session['tournament_id'])
+            && (new TournamentParticipation())->isMember(Auth::id(), (int) $session['tournament_id'])) {
+            $status = 'approved';   // člen turnaje → bez schvalování
+        }
+
         $participation->join(Auth::id(), $sessionId, $status);
 
         $this->redirect('/sessions/' . $sessionId);
@@ -37,7 +42,13 @@ class ParticipationController extends Controller
         $this->verifyCsrf();
 
         (new Participation())->leave(Auth::id(), (int) $id);
-        $this->redirect('/sessions/' . (int) $id);
+
+        // volitelný návrat (dismiss z dashboardu pošle "/")
+        $back = $_POST['redirect'] ?? '';
+        if ($back === '' || $back[0] !== '/' || str_starts_with($back, '//')) {
+            $back = '/sessions/' . (int) $id;
+        }
+        $this->redirect($back);
     }
 
     public function approve(string $id): void
@@ -50,7 +61,12 @@ class ParticipationController extends Controller
 
         $userId = (int) ($_POST['user_id'] ?? 0);
         (new Participation())->setStatus($userId, $sessionId, 'approved');
-        $this->redirect('/sessions/' . $sessionId);
+
+        $back = $_POST['redirect'] ?? '';
+        if ($back === '' || $back[0] !== '/' || str_starts_with($back, '//')) {
+            $back = '/sessions/' . $sessionId;
+        }
+        $this->redirect($back);
     }
 
     public function reject(string $id): void
@@ -63,7 +79,12 @@ class ParticipationController extends Controller
 
         $userId = (int) ($_POST['user_id'] ?? 0);
         (new Participation())->leave($userId, $sessionId);   // zamítnutí = smazání žádosti
-        $this->redirect('/sessions/' . $sessionId);
+
+        $back = $_POST['redirect'] ?? '';
+        if ($back === '' || $back[0] !== '/' || str_starts_with($back, '//')) {
+            $back = '/sessions/' . $sessionId;
+        }
+        $this->redirect($back);
     }
 
 }

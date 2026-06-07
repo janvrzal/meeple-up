@@ -4,12 +4,26 @@ class SessionController extends Controller
 {
     public function create(): void{
         $this->requireLogin();
-        $locations = (new Location())->all();
-        $this->render(
-            'sessions/create', [
-                'locations' => $locations,
-                'favorites' => (new Favorite())->forUser(Auth::id())
-            ]);
+
+        $data = [
+            'locations' => (new Location())->all(),
+            'favorites' => (new Favorite())->forUser(Auth::id()),
+        ];
+
+        $tournamentId = (int) ($_GET['tournament_id'] ?? 0);
+        if ($tournamentId > 0) {
+            $tournament = (new Tournament())->findById($tournamentId);
+            if ($tournament !== null) {
+                $game = (new Game())->findById((int) $tournament['game_id']);
+                $data['tournamentId'] = $tournamentId;
+                $data['old'] = [
+                    'bgg_id'    => $game['bgg_id'] ?? '',
+                    'game_name' => $game['name'] ?? '',
+                ];
+            }
+        }
+
+        $this->render('sessions/create', $data);
     }
 
     public function store(): void{
@@ -30,8 +44,9 @@ class SessionController extends Controller
         $data = $result['data'];
         $data['creator_id'] = Auth::id();
         $id = (new Session())->create($data);
-        (new Participation())->join(Auth::id(), $id, 'approved');
-
+        if (!empty($_POST['join_self'])) {
+            (new Participation())->join(Auth::id(), $id, 'approved');
+        }
         $this->redirect('/sessions/' . $id);
     }
 
@@ -112,6 +127,7 @@ class SessionController extends Controller
         $locationId  = (int) ($_POST['location_id'] ?? 0);
         $newName     = trim($_POST['new_location_name'] ?? '');
         $newCity     = trim($_POST['new_location_city'] ?? '');
+        $tournamentId = !empty($_POST['tournament_id']) ? (int) $_POST['tournament_id'] : null;
         $date        = trim($_POST['date'] ?? '');
         $time        = trim($_POST['time'] ?? '');
         $scheduledAt = $date . ' ' . $time;
@@ -146,6 +162,7 @@ class SessionController extends Controller
             'data'   => [
                 'location_id'  => $locationId,
                 'game_id'      => $gameId,
+                'tournament_id' => $tournamentId,
                 'title'        => $title,
                 'scheduled_at' => $errors ? null : date('Y-m-d H:i:s', strtotime($scheduledAt)),
                 'max_players'  => $maxPlayers,
