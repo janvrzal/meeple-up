@@ -2,6 +2,7 @@
 /** @var array $user */
 /** @var array|null $flash */
 /** @var array $cities */
+$cities = $cities ?? [];
 ?>
 
 <div class="max-w-xl mx-auto">

@@ -31,6 +31,12 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
 
 <div class="max-w-2xl mx-auto card bg-base-100 shadow-lg">
 
+    <?php if ($s['status'] === 'cancelled'): ?>
+        <div class="bg-error text-error-content px-6 py-2 text-sm font-medium flex items-center gap-2">
+            <i class="ti ti-ban"></i> This session has been cancelled.
+        </div>
+    <?php endif; ?>
+
     <?php /* ===================== HEADER ===================== */ ?>
     <div class="px-6 pt-5">
         <div class="flex items-start justify-between gap-3">
@@ -69,7 +75,10 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
 
             <?php /* ----- primary status / join-leave action (top-right) ----- */ ?>
             <div class="flex flex-col items-end gap-2 shrink-0">
-                <?php if ($isCreator): ?>
+                <?php if ($s['status'] === 'cancelled'): ?>
+                    <span class="badge badge-error badge-lg gap-1"><i class="ti ti-ban"></i> Cancelled</span>
+
+                <?php elseif ($isCreator): ?>
                     <span class="badge badge-info badge-lg gap-1"><i class="ti ti-crown"></i> You're the host</span>
 
                 <?php elseif (!Auth::check()): ?>
@@ -140,6 +149,18 @@ $accent = Avatar::color($s['game_name'] ?? $s['title']);
                     <a href="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/edit" class="btn btn-sm gap-1">
                         <i class="ti ti-edit"></i> Edit
                     </a>
+                    <?php if ($s['status'] === 'open'): ?>
+                        <form method="POST" action="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/cancel"
+                              onsubmit="return confirm('Cancel this session? Players will see it as cancelled.');">
+                            <?= Csrf::field() ?>
+                            <button class="btn btn-sm btn-warning btn-outline gap-1"><i class="ti ti-ban"></i> Cancel</button>
+                        </form>
+                    <?php elseif ($s['status'] === 'cancelled'): ?>
+                        <form method="POST" action="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/reopen">
+                            <?= Csrf::field() ?>
+                            <button class="btn btn-sm btn-success btn-outline gap-1"><i class="ti ti-rotate"></i> Reopen</button>
+                        </form>
+                    <?php endif; ?>
                     <form method="POST" action="<?= BASE_PATH ?>/sessions/<?= $s['id'] ?>/delete"
                           onsubmit="return confirm('Delete this session?');">
                         <?= Csrf::field() ?>

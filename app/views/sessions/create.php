@@ -1,5 +1,9 @@
 <?php
 /** @var array $locations */ /** @var array $errors */ /** @var array $old */ /** @var array $favorites */
+$favorites = $favorites ?? [];
+$locations = $locations ?? [];
+$errors    = $errors    ?? [];
+$old       = $old       ?? [];
 ?>
 <div class="max-w-2xl mx-auto card bg-base-100 shadow">
     <div class="card-body">

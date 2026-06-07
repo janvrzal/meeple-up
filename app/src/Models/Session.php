@@ -115,7 +115,7 @@ class Session extends Model
     public function forUser(int $userId): array
     {
         $sql = $this->baseSelect()
-            . ' WHERE s.scheduled_at >= NOW() AND s.status = \'open\'
+            . ' WHERE s.scheduled_at >= NOW() AND s.status IN (\'open\', \'cancelled\')
             AND (s.creator_id = :uid1
                  OR EXISTS (SELECT 1 FROM participations p
                             WHERE p.session_id = s.id AND p.user_id = :uid2 AND p.status = \'approved\'))
@@ -130,5 +130,14 @@ class Session extends Model
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM sessions WHERE creator_id = :uid');
         $stmt->execute(['uid' => $userId]);
         return (int) $stmt->fetchColumn();
+    }
+
+    public function setStatus(int $id, string $status): void
+    {
+        if (!in_array($status, ['open', 'cancelled', 'finished'], true)) {
+            return; // neznámý stav ignoruj
+        }
+        $stmt = $this->db->prepare('UPDATE sessions SET status = :s WHERE id = :id');
+        $stmt->execute(['s' => $status, 'id' => $id]);
     }
 }

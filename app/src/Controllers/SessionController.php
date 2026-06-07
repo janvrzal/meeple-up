@@ -246,4 +246,18 @@ class SessionController extends Controller
 
         return [$start, $end];
     }
+
+    public function cancel(string $id): void { $this->changeStatus($id, 'cancelled'); }
+    public function reopen(string $id): void { $this->changeStatus($id, 'open'); }
+
+    private function changeStatus(string $id, string $status): void
+    {
+        $this->verifyCsrf();
+        $session = (new Session())->findById((int) $id);
+        if ($session === null) { $this->abort(404, 'Session not found'); }
+        $this->requireOwner((int) $session['creator_id']);
+
+        (new Session())->setStatus((int) $id, $status);
+        $this->redirect('/sessions/' . (int) $id);
+    }
 }

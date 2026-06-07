@@ -57,6 +57,8 @@ $router->post('/sessions',        [SessionController::class, 'store']);
 $router->get('/sessions/{id}',    [SessionController::class, 'show']);
 $router->post('/sessions/{id}/delete', [SessionController::class, 'destroy']);
 $router->get('/sessions/{id}/edit',    [SessionController::class, 'edit']);
+$router->post('/sessions/{id}/cancel', [SessionController::class, 'cancel']);
+$router->post('/sessions/{id}/reopen', [SessionController::class, 'reopen']);
 $router->post('/sessions/{id}/update', [SessionController::class, 'update']);
 $router->get('/sessions/{id}/calendar', [SessionController::class, 'calendar']);
 
