@@ -6,21 +6,19 @@
  */
 class View
 {
-    public static function render(string $__view__, array $__data__ = []): void
+    public static function render(string $__view_template__, array $__view_data__ = []): void
     {
-        $__path__ = __DIR__ . '/../../views/' . $__view__ . '.php';
+        extract($__view_data__, EXTR_SKIP);
+        $__view_path__ = __DIR__ . '/../../views/' . $__view_template__ . '.php';
 
-        if (!is_file($__path__)) {
+        if (!is_file($__view_path__)) {
             http_response_code(500);
-            echo "View '" . htmlspecialchars($__view__) . "' not found";
+            echo "View '" . htmlspecialchars($__view_template__) . "' not found";
             return;
         }
 
-        // EXTR_SKIP: data z controlleru nikdy nepřepíšou lokální proměnné ($__view__, $__path__)
-        extract($__data__, EXTR_SKIP);
-
         ob_start();
-        require $__path__;
+        require $__view_path__;
         $content = ob_get_clean();
 
         require __DIR__ . '/../../views/layout.php';

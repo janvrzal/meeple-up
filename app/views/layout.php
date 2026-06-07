@@ -57,7 +57,7 @@
                         <li><a href="<?= BASE_PATH ?>/sessions"><i class="ti ti-calendar-event"></i> Browse sessions</a></li>
                         <li><a href="<?= BASE_PATH ?>/tournaments"><i class="ti ti-trophy"></i> Tournaments</a></li>
                         <li><a href="<?= BASE_PATH ?>/games"><i class="ti ti-cards"></i> Favorite Games</a></li>
-                        <li><hr class="border-base-200 my-1"></li>
+                        <li class="border-t border-base-content/20 my-1"></li>
                         <li><a href="<?= BASE_PATH ?>/account"><i class="ti ti-user-cog"></i> Account</a></li>
                         <li><a href="<?= BASE_PATH ?>/logout" class="text-error"><i class="ti ti-logout"></i> Logout</a></li>
                     </ul>

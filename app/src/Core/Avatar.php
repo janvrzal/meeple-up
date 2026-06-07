@@ -18,7 +18,7 @@ class Avatar
 
     public static function color(string $name): string
     {
-        $index = crc32($name) % count(self::COLORS);
+        $index = (int) sprintf('%u', crc32($name)) % count(self::COLORS);
         return self::COLORS[$index];
     }
 

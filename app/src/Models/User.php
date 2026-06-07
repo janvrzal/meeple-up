@@ -7,7 +7,7 @@ class User extends Model
         $hash = password_hash($peppered, PASSWORD_DEFAULT);
 
         $sql = 'INSERT INTO users (username, email, password_hash, city) 
-                VALUES (:username, :email, :hashm :city)';
+                VALUES (:username, :email, :hash, :city)';
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'username' => $userName,
