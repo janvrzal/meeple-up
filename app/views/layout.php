@@ -7,6 +7,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Roll Call</title>
+    <link rel="icon" type="image/svg+xml" href="<?= BASE_PATH ?>/assets/mascot.svg">
+    <link rel="apple-touch-icon" href="<?= BASE_PATH ?>/assets/mascot.svg">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" type="text/css" />
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css" rel="stylesheet" type="text/css" />
     <style>

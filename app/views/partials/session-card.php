@@ -14,18 +14,21 @@ $isCancelled = ($s['status'] ?? 'open') === 'cancelled';
         </div>
 
         <div class="min-w-0 flex-1 flex flex-col gap-1">
-            <div class="flex items-start justify-between gap-2">
-                <h2 class="card-title text-base"><?= htmlspecialchars($s['title']) ?></h2>
-                <?= $cardBadge ?? '' ?>
+            <div class="flex items-start justify-between gap-2 min-w-0">
+                <h2 class="card-title text-base truncate min-w-0"><?= htmlspecialchars($s['title']) ?></h2>
+                <span class="shrink-0"><?= $cardBadge ?? '' ?></span>
             </div>
             <div class="text-sm opacity-80 truncate"><?= htmlspecialchars($s['game_name'] ?? 'No game selected') ?></div>
             <?php if (!empty($s['tournament_name'])): ?>
-                <span class="badge badge-sm badge-outline gap-1 w-fit"><i class="ti ti-trophy"></i> <?= htmlspecialchars($s['tournament_name']) ?></span>
+                <span class="badge badge-sm badge-outline gap-1 max-w-full">
+                    <i class="ti ti-trophy shrink-0"></i>
+                    <span class="truncate"><?= htmlspecialchars($s['tournament_name']) ?></span>
+                </span>
             <?php endif; ?>
-            <div class="flex flex-col gap-1 text-sm">
-                <span class="flex items-center gap-1"><i class="ti ti-map-pin opacity-60"></i>
-                    <?= htmlspecialchars($s['location_name'] . ', ' . $s['location_city']) ?></span>
-                <span class="flex items-center gap-1"><i class="ti ti-clock opacity-60"></i>
+            <div class="flex flex-col gap-1 text-sm min-w-0">
+                <span class="flex items-center gap-1 min-w-0"><i class="ti ti-map-pin opacity-60 shrink-0"></i>
+                    <span class="truncate"><?= htmlspecialchars($s['location_name'] . ', ' . $s['location_city']) ?></span></span>
+                <span class="flex items-center gap-1"><i class="ti ti-clock opacity-60 shrink-0"></i>
                     <?= date('j.n.Y H:i', strtotime($s['scheduled_at'])) ?></span>
             </div>
         </div>

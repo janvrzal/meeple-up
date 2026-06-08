@@ -42,7 +42,7 @@ foreach ($active as $cs) {
 <div class="grid lg:grid-cols-3 gap-4">
 
     <?php /* ============ HLAVNÍ SLOUPEC ============ */ ?>
-    <div class="lg:col-span-2 space-y-4">
+    <div class="lg:col-span-2 space-y-4 min-w-0">
 
         <?php /* ----- NEXT SESSION (hero) ----- */ ?>
         <?php if ($next === null): ?>
@@ -79,7 +79,7 @@ foreach ($active as $cs) {
                         </div>
                     </div>
 
-                    <div class="grid sm:grid-cols-2 gap-2 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                         <span class="flex items-center gap-2"><i class="ti ti-map-pin opacity-60"></i>
                             <?= htmlspecialchars($next['location_name'] . ', ' . $next['location_city']) ?></span>
                         <span class="flex items-center gap-2"><i class="ti ti-clock opacity-60"></i>
@@ -106,7 +106,7 @@ foreach ($active as $cs) {
         <?php if (!empty($others)): ?>
             <div>
                 <h2 class="text-lg font-bold mb-2 flex items-center gap-2"><i class="ti ti-calendar-event"></i> Later</h2>
-                <div class="grid sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <?php foreach ($others as $s): ?>
                         <?php
                         $cardBadge = ((int) $s['creator_id'] === Auth::id())
@@ -134,7 +134,7 @@ foreach ($active as $cs) {
                     </div>
                 </div>
             <?php else: ?>
-                <div class="grid sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <?php foreach ($tournaments as $t): ?>
                         <a href="<?= BASE_PATH ?>/tournaments/<?= $t['id'] ?>"
                            class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200">
@@ -156,7 +156,7 @@ foreach ($active as $cs) {
     </div>
 
     <?php /* ============ POSTRANNÍ SLOUPEC ============ */ ?>
-    <div class="space-y-4">
+    <div class="space-y-4 min-w-0">
 
         <?php /* ----- NOTIFICATIONS ----- */ ?>
         <div class="card bg-base-100 shadow-sm">

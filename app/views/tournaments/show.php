@@ -19,9 +19,9 @@ $isAdmin   = Auth::check() && (Auth::user()['role'] ?? 'user') === 'admin';
                 <i class="ti ti-trophy text-3xl"></i>
             </div>
             <div class="min-w-0 mr-auto">
-                <h1 class="text-2xl font-bold"><?= htmlspecialchars($t['name']) ?></h1>
-                <p class="text-sm opacity-70 flex items-center gap-1 mt-1">
-                    <i class="ti ti-dice"></i> <?= htmlspecialchars($t['game_name']) ?>
+                <h1 class="text-2xl font-bold break-words"><?= htmlspecialchars($t['name']) ?></h1>
+                <p class="text-sm opacity-70 flex items-center gap-1 mt-1 min-w-0">
+                    <i class="ti ti-dice shrink-0"></i> <span class="truncate"><?= htmlspecialchars($t['game_name']) ?></span>
                 </p>
                 <p class="text-xs opacity-60 flex items-center gap-1 flex-wrap">
                     <i class="ti ti-user"></i> by <?= htmlspecialchars($t['creator_name']) ?>
@@ -86,7 +86,7 @@ $isAdmin   = Auth::check() && (Auth::user()['role'] ?? 'user') === 'admin';
         <?php endif; ?>
     </div>
 <?php else: ?>
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <?php foreach ($sessions as $s): ?>
             <?php
             $full = $s['max_players'] !== null && (int) $s['player_count'] >= (int) $s['max_players'];

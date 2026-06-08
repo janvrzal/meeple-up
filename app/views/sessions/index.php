@@ -80,7 +80,7 @@ foreach ($games as $g) {
         </a>
     </div>
 <?php else: ?>
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <?php foreach ($sessions as $s): ?>
             <?php
             $full = $s['max_players'] !== null && (int) $s['player_count'] >= (int) $s['max_players'];

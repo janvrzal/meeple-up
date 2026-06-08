@@ -22,7 +22,7 @@
         <?php endif; ?>
     </div>
 <?php else: ?>
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <?php foreach ($tournaments as $t): ?>
             <a href="<?= BASE_PATH ?>/tournaments/<?= $t['id'] ?>"
                class="card bg-base-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition border border-base-200">
